@@ -28,7 +28,7 @@ $t->startMain();
 <?php
 // Create Calendar
 if (isset($_GET['m']) && isset($_GET['y'])) {
-	$myCal = new Calendar(false, $_GET['m'], $_GET['y']);
+	$myCal = new Calendar(false, true, $_GET['m'], $_GET['y']);
 	$myCal->javascript = "selectRecurDate(%d,%d,%d,%d);";
 	// Print calendar
 	$myCal->printCalendar();

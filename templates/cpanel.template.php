@@ -96,12 +96,14 @@ function showReservationTable($res, $err) {
           <td class="tableTitle" width="120">
 		  	<a href="javascript: void(0);" onclick="showHideCpanelTable('reservation');">&#8250; <?php echo translate('My Reservations')?></a></div>
 		  </td>
-		  <td class="tableTitle" width="20">
-		  	<?php $link->doImageLink('export.php', 'img/export.gif', 'Export Reservations'); ?>
+		  <td class="tableTitle2">
+			<!-- <a href="export.php">Export Calendar to File</a> -->
+		  	<!-- <?php $link->doImageLink('export.php', 'img/export.gif', 'Export Reservations'); ?> -->
 		  </td>
           <td class="tableTitle">
             <div align="right">
-              <?php $link->doLink('javascript: help(\'my_reservations\');', '?', '', 'color: #FFFFFF;', translate('Help') . ' - ' . translate('My Reservations')) ?>
+              <!-- <a href="export.php">Export Calendar to File</a> -->
+			  <!-- <?php $link->doLink('javascript: help(\'my_reservations\');', '?', '', 'color: #FFFFFF;', translate('Help') . ' - ' . translate('My Reservations')) ?> -->
 			</div>
           </td>
         </tr>
@@ -116,7 +118,7 @@ function showReservationTable($res, $err) {
 		 	<?php $link->doLink($_SERVER['PHP_SELF'] . $util->getSortingUrl($qs, 'end_date'), translate('End Date')); ?>
 		  </td>
           <td width="23%">
-		  	<?php $link->doLink($_SERVER['PHP_SELF'] . $util->getSortingUrl($qs, 'name'), translate('Resource')); ?>
+		  	<?php $link->doLink($_SERVER['PHP_SELF'] . $util->getSortingUrl($qs, 'name'), translate('Room')); ?>
 		  </td>
           <td width="10%">
 		  	<?php $link->doLink($_SERVER['PHP_SELF'] . $util->getSortingUrl($qs, 'starttime'), translate('Start Time')); ?>
@@ -124,11 +126,12 @@ function showReservationTable($res, $err) {
           <td width="10%">
 		  	<?php $link->doLink($_SERVER['PHP_SELF'] . $util->getSortingUrl($qs, 'endtime'), translate('End Time')); ?>
 		  </td>
-          <td width="20%">
+          <!--<td width="20%">
 		  	<?php $link->doLink($_SERVER['PHP_SELF'] . $util->getSortingUrl($qs, 'created'), translate('Created')); ?>
 		  </td>
-          <td width="8%"><?php echo translate('Modify')?></td>
-          <td width="8%"><?php echo translate('Delete')?></td>
+          <td width="8%"><?php echo '-'?></td>
+          <td width="8%"><?php echo '-'?></td>
+	  -->
         </tr>
 
         <?php
@@ -154,7 +157,7 @@ function showReservationTable($res, $err) {
 					. '          <td style="text-align:left;">' . $rs['name'] . '</td>'
 					. '          <td>' . Time::formatTime($rs['starttime']) . '</td>'
 					. '          <td>' . Time::formatTime($rs['endtime']) . '</td>'
-                    . '          <td>' . Time::formatDateTime($rs['created']) . '</td>'
+                   // . '          <td>' . Time::formatDateTime($rs['created']) . '</td>'
 					. '          <td>' . $link->getLink("javascript: reserve('m','','','" . $rs['resid'] . "');", translate('Modify'), '', '', translate('Modify this reservation')) . '</td>'
 					. '          <td>' . $link->getLink("javascript: reserve('d','','','" . $rs['resid'] . "');", translate('Delete'), '', '', translate('Delete this reservation')) . '</td>'
 					. "        </tr>\n";
@@ -395,14 +398,18 @@ function showQuickLinks($is_admin = false, $is_group_admin = false) {
 			<p><b>&raquo;</b>
               <?php $link->doLink('mycalendar.php?view=3', translate('My Calendar')) ?>
             </p>
-			<p><b>&raquo;</b>
+<!-- TODO: rename this menu item from "Schedule Calendar" to "View Resource Calendar" even though it is renamed in here it is not displayed properly -->
+<!-- AK: Do not need this functionality			<p><b>&raquo;</b>
               <?php $link->doLink('rescalendar.php?view=3', translate('View Resource Calendar')) ?>
             </p>
             <p><b>&raquo;</b>
               <?php $link->doLink('my_email.php', translate('Manage My Email Preferences')) ?>
-            </p>
-			<p><b>&raquo;</b>
-              <?php $link->doLink('mailto:' . $conf['app']['adminEmail'].'?cc=' . $conf['app']['ccEmail'], translate('Email Administrator'), '', '', 'Send a non-technical email to the administrator') ?>
+            </p> -->
+<!-- e-mail administrator menu item commented out	-->
+<!--			<p><b>&raquo;</b>
+			
+              <?php $link->doLink('mailto:' . $conf['app']['adminEmail'].'?cc=' . $conf['app']['ccEmail'], translate('Email Administrator'), '', '', 'Send a non-technical email to the administrator') ?> 
+-->
             </p>
 			<p><b>&raquo;</b>
               <?php $link->doLink('register.php?edit=true', translate('Change My Profile Information/Password')) ?>

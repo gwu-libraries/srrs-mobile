@@ -27,7 +27,13 @@ if (isset($_GET['logout'])) {
     $auth->doLogout();   
 }
 else if (isset($_POST['login'])) {
-	$msg = $auth->doLogin($_POST['email'], $_POST['password'], (isset($_POST['setCookie']) ? 'y' : null), false, $resume, $_POST['language']);
+	if ($conf['app']['wrlc'])
+	{
+		$msg = $auth->doLoginGwid($_POST['gwid'], $_POST['name']);
+	}
+	else{
+		$msg = $auth->doLogin($_POST['email'], $_POST['password'], (isset($_POST['setCookie']) ? 'y' : null), false, $resume, $_POST['language']);
+	}
 }
 else if (isset($_COOKIE['ID'])) {
     $msg = $auth->doLogin('', '', 'y', $_COOKIE['ID'], $resume);  	// Check if user has cookies set up. If so, log them in automatically 
@@ -36,9 +42,11 @@ else if (isset($_COOKIE['ID'])) {
 $t->printHTMLHeader();
 
 // Print out logoImage if it exists
-echo (!empty($conf['ui']['logoImage']))
-		? '<div align="left"><img src="' . $conf['ui']['logoImage'] . '" alt="logo" vspace="5"/></div>'
-		: '';
+echo '<div id="banner-bg"><div id="banner"><img src="img/banner.jpg" /></div></div>';
+
+// echo (!empty($conf['ui']['logoImage']))
+//		? '<div align="left"><img src="' . $conf['ui']['logoImage'] . '" alt="logo" vspace="5"/></div>'
+//		: ''; -->
 
 $t->startMain();
 

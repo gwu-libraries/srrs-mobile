@@ -6,7 +6,7 @@
 * @author Nick Korbel <lqqkout13@users.sourceforge.net>
 * @author David Poole <David.Poole@fccc.edu>
 * @author Richard Cantzler <rmcii@users.sourceforge.net>
-* @version 02-04-07
+* @version 06-23-07
 * @package Templates
 *
 * Copyright (C) 2003 - 2007 phpScheduleIt
@@ -23,7 +23,10 @@ $link = CmnFns::getNewLink();
 */
 function print_date_span($d, $title) {
     // Print out current week being viewed
-    echo '<h3 align="center">' . $title . '<br/>' . Time::formatDate($d['firstDayTs']) . ' - ' . Time::formatDate($d['lastDayTs']) . '</h3>';
+    // echo '<h3 align="center">' . $title . '<br/>' . Time::formatDate($d['firstDayTs']) . ' - ' . Time::formatDate($d['lastDayTs']) . '</h3>';
+    // AK: Updated version. We want to display current date only.
+ 	echo '<h3 align="center">'. Time::formatDate($d['todayTs']) .'</h3>';
+
 }
 
 /**
@@ -58,18 +61,31 @@ function print_color_key() {
 <table align="center" cellpadding="5" cellspacing="10">
   <tr style="font-size: 10px; font-weight: bold; text-align: center; vertical-align: center;">
     <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['my_res'][0]['color']?>; border: 2px #000000 solid;"><?php echo translate('My Reservations')?></td>
+  </tr>
+  <tr style="font-size: 10px; font-weight: bold; text-align: center; vertical-align: center;">
     <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['my_past_res'][0]['color']?>; border: 2px #000000 solid;"><?php echo translate('My Past Reservations')?></td>
+  </tr> 
+ <!-- <tr style="font-size: 10px; font-weight: bold; text-align: center; vertical-align: center;">
     <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['participant_res'][0]['color']?>; border: 2px #000000 solid;"><?php echo translate('My Participation')?></td>
+  </tr> -->
+  <!-- <tr style="font-size: 10px; font-weight: bold; text-align: center; vertical-align: center;">
     <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['participant_past_res'][0]['color']?>; border: 2px #000000 solid; color: #CCCCCC;"><?php echo translate('My Past Participation')?></td>
+  </tr> -->
+  <tr style="font-size: 10px; font-weight: bold; text-align: center; vertical-align: center;">
 	<td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['other_res'][0]['color']?>; border: 2px #000000 solid;"><?php echo translate('Other Reservations')?></td>
+  </tr>
+  <tr style="font-size: 10px; font-weight: bold; text-align: center; vertical-align: center;">
     <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['other_past_res'][0]['color']?>; border: 2px #000000 solid;"><?php echo translate('Other Past Reservations')?></td>
+  </tr>
+  <!-- <tr style="font-size: 10px; font-weight: bold; text-align: center; vertical-align: center;">
 	<td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['pending'][0]['color']?>; border: 2px #000000 solid;"><?php echo translate('Pending Approval')?></td>
+  </tr> -->
+  <tr style="font-size: 10px; font-weight: bold; text-align: center; vertical-align: center;">
 	<td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['blackout'][0]['color']?>; border: 2px #000000 solid; color: #CCCCCC;"><?php echo translate('Blacked Out Time')?></td>
   </tr>
 </table>
 <?php
 }
-
 
 /**
 * Start table for one day on schedule
@@ -78,14 +94,14 @@ function print_color_key() {
 * and the time value cells
 * @param string $displayDate date string to print
 */
-function start_day_table($displayDate, $hour_header) {
+function start_day_table($displayDate, $hour_header, $isCurrentDate) {
 ?>
     <table width="100%" border="0" cellspacing="0" cellpadding="1">
      <tr class="tableBorder">
       <td>
        <table width="100%" border="0" cellspacing="1" cellpadding="0">
         <tr class="scheduleTimes">
-         <td rowspan="2" width="15%" class="scheduleDate"><?php echo $displayDate ?></td>
+         <td rowspan="2" width="15%" class="<?php echo $isCurrentDate ? 'scheduleDateCurrent' : 'scheduleDate' ?>"><?php echo $displayDate ?></td>
 <?php
     echo $hour_header ."</tr>\n";
 }
@@ -96,13 +112,13 @@ function start_day_table($displayDate, $hour_header) {
 * @param Calendar $curr current month calendar
 * @param Calendar $next next month calendar
 */
-function print_calendars(&$prev, &$curr, &$next) {
+function print_calendars(&$prev, &$curr, &$next, $current_date) {
 ?>
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
   <tr>
-    <td align="center" valign="top"><?php $prev->printCalendar()?></td>
-    <td align="center" valign="top"><?php $curr->printCalendar()?></td>
-    <td align="center" valign="top"><?php $next->printCalendar()?></td>
+   <!-- <td align="center" valign="top"><?php $prev->printCalendar($current_date)?></td> -->
+    <td align="center" valign="top"><?php $curr->printCalendar($current_date)?></td>
+   <!-- <td align="center" valign="top"><?php $next->printCalendar($current_date)?></td> -->
   </tr>
 </table>
 <?php
@@ -116,21 +132,32 @@ function print_calendars(&$prev, &$curr, &$next) {
 * @param int $timespan time intervals
 * @global $conf
 */
-function get_hour_header($th, $startDay, $endDay, $timespan) {
+function get_hour_header($th, $startDay, $endDay, $timespan, $current_date) {
     global $conf;
     $header = '';
 
+    // Compute total # of cols
+    $totCol = intval(($endDay - $startDay) / $timespan);
+    $width = (100/$totCol);
+	
     // Write out the available times
-    foreach ($th as $time => $cols) {
-        $header .= "<td colspan=\"$cols\">$time</td>";
+    $i=0;
+	foreach ($th as $time => $cols) {
+
+		if(($current_date + $startDay + ($i*$timespan*60)) > time() + 2*60*60/* - (60*60)*/)
+		{
+        	$header .= "<td  width=\"$width%\" colspan=\"$cols\">$time</td>";
+		}else
+		{
+			$header .= "<td  width=\"$width%\" colspan=\"$cols\" class=\"scheduleTimePast\">$time</td>";
+		}
+		$i++;
     }
 
     // Close row, start next
     $header .= "</tr>\n<tr class=\"scheduleTimes\">\n";
 
-    // Compute total # of cols
-    $totCol = intval(($endDay - $startDay) / $timespan);
-    $width = (100/$totCol);
+
     // Create the fraction hour minute marks
     for ($x = 0; $x < $totCol; $x++)
     {
@@ -169,8 +196,9 @@ function end_day_table() {
 * @param boolean $pending is reservation pending approval
 * @param string $color background color of row
 */
-function print_name_cell($ts, $id, $name, $shown, $is_blackout, $scheduleid, $pending = false, $color = '') {
+function print_name_cell($ts, $id, $name, $shown, $is_blackout, $scheduleid, $pending = false, $color = '', $floor_plan = NULL) {
     global $link;
+	global $conf;
 
     $color = (empty($color)) ? 'cellColor': $color;
 
@@ -178,8 +206,27 @@ function print_name_cell($ts, $id, $name, $shown, $is_blackout, $scheduleid, $pe
     echo "<tr class=\"$color\">\n"
            . '<td class="resourceName">';
 
+		if($shown)
+		{
+			if($floor_plan != NULL && $floor_plan != '')
+			{
+				
+				echo ("<a href=\"javascript:floorPic('" ."img/" .  $floor_plan . "');\">" . $name . "</a>");
+				//echo ("<a href=\"javascript:floorPic('" . $conf['app']['floor_plans_dir'] . "/" .  $floor_plan . "');\">" . $name . "</a>");
+			}
+			else
+			{
+				echo '<span>' . $name . '</span>';
+			}
+		}
+		else
+		{
+			echo '<span class="inact">' . $name . '</span>';
+		}	
+		
+
+/*
     if ($is_blackout) {
-        $link->doLink("javascript: reserve('r', '$id','$ts', '', '$scheduleid', '1', '0', '$pending');", $name);
     }
     else {
         // If the user is allowed to make reservations on this resource
@@ -188,8 +235,8 @@ function print_name_cell($ts, $id, $name, $shown, $is_blackout, $scheduleid, $pe
         if ($shown)
             $link->doLink("javascript: reserve('r','$id','$ts','', '$scheduleid', '0', '$pending');", $name);
         else
-            echo '<span class="inact">' . $name . '</span>';
-    }
+            
+    }*/
     // Close cell
     echo "</td>";
 }
@@ -209,14 +256,31 @@ function print_name_cell($ts, $id, $name, $shown, $is_blackout, $scheduleid, $pe
 function print_blank_cols($cols, $start, $span, $ts, $machid, $scheduleid, $scheduleType, $clickable, $class = '') {
     $is_blackout = intval($scheduleType == BLACKOUT_ONLY);
 	
-    $js = '';
+
     for ($i = 0; $i <= $cols; $i++) {
-        if ($scheduleType != READ_ONLY && ($clickable || $is_blackout)) {
+	    $js = '';
+		$class = '';
+        if ($scheduleType != READ_ONLY && $clickable/*&& ($clickable || $is_blackout)*/) {
             $tstart = $start + ($i * $span);
             $tend = $tstart + $span;
-            $js = "onmouseover=\"blankOver(this);\" onmouseout=\"blankOut(this, '$class');\" onclick=\"reserve('r','$machid','$ts','','$scheduleid',$is_blackout,'','',$tstart,$tend);\"";
+			
+			//checking if cell is for the past time. it should not be clickable
+			if (($ts + (($tstart+$span)*60)) > time() + 3*60*60/*Time::getAdjustedTime(mktime())*/)
+			{
+            	$js = "onmouseover=\"blankOver(this);\" onmouseout=\"blankOut(this, '$class');\" onclick=\"reserve('r','$machid','$ts','','$scheduleid',$is_blackout,'','',$tstart,$tend);\"";
+			}
+		 	else
+			{
+				$class = "class = \"inactiveCell\"";
+				$js = "onmouseover=\"showDescription('timeslotinfo','time_past');\" onmouseout=\"hideDescription('timeslotinfo');\"";
+			}
         }
-        echo "<td $js>&nbsp;</td>";
+		else
+		{
+			$class = "class = \"inactiveCell\"";
+			$js = "onmouseover=\"showDescription('timeslotinfo','time_future');\" onmouseout=\"hideDescription('timeslotinfo');\"";
+		}
+        echo "<td $class $js>&nbsp;</td>";
     }
 }
 
@@ -239,35 +303,63 @@ function print_closing_tr() {
 * @param int $read_only whether this is a read only schedule
 * @param boolean $pending is this reservation pending approval
 */
-function write_reservation($colspan, $color_select, $mod_view, $resid, $summary = '', $viewable = false, $read_only = false, $pending = 0) {
+function write_reservation($colspan, $color_select, $mod_view, $resid, $summary = '', $viewable = false, $read_only = false, $pending = 0) 
+{
     global $conf;
 
     $js = '';
     $color = '#' . $conf['ui'][$color_select][0]['color'];
     $hover = '#' . $conf['ui'][$color_select][0]['hover'];
     $text  = '#' . $conf['ui'][$color_select][0]['text'];
+	$image = $conf['ui'][$color_select][0]['image'];
     $chars = ($colspan > 1) ? 4 * $colspan : 0;
 
     $read_only = intval($read_only);
 
-    if ($viewable) {
+ 	/*AK: $mod_view work around. This is required to make reservations of other users not clickable*/
+	$mod_view_wa = false;
+	if ($mod_view == 'm'){
+		$mod_view_wa = true;
+	}
+	/*--------------------------------------------------------------------------------------------*/
+
+    if ($viewable && $mod_view_wa) {
         $js = "onclick=\"reserve('$mod_view','','','$resid','','0','$read_only','$pending');\" ";
         if ($summary->isVisible()) {
-            $js .= "onmouseover=\"resOver(this, '$hover'); showsummary('summary', event, '" . preg_replace("/[\n\r]+/", '<br/>', addslashes($summary->toScheduleHover())) . "');\" onmouseout=\"resOut(this, '$color'); hideSummary('summary');\" onmousemove=\"moveSummary('summary', event);\"";
+            $js .= "onmouseover=\"showDescription('timeslotinfo', '$color_select'); resOver(this, '$hover'); showsummary('summary', event, '" . preg_replace("/[\n\r]+/", '<br/>', addslashes($summary->toScheduleHover())) . "');\" onmouseout=\"hideDescription('timeslotinfo'); resOut(this, '$color', '$image'); hideSummary('summary');\" onmousemove=\"moveSummary('summary', event);\"";
 		}
         else {
-            $js .="onmouseover=\"resOver(this, '$hover');\" onmouseout=\"resOut(this, '$color');\"";
+            $js .="onmouseover=\"showDescription('timeslotinfo', '$color_select'); resOver(this, '$hover');\" onmouseout=\"hideDescription('timeslotinfo'); resOut(this, '$color', '$image');\"";
 		}
     }
     else {
         if ($summary->isVisible()) {
             $js = "onmouseover=\"showsummary('summary', event, '" . preg_replace("/[\n\r]+/", '<br/>', addslashes($summary->toScheduleHover())) . "');\" onmouseout=\"hideSummary('summary');\" onmousemove=\"moveSummary('summary', event);\"";
 		}
+		else{
+			$js .="onmouseover=\"showDescription('timeslotinfo', '$color_select'); resOver(this, '$hover');\" onmouseout=\"hideDescription('timeslotinfo'); resOut(this, '$color', '$image');\"";
+		}
     }
 
     $summary_text = $summary->toScheduleCell();
 
-    echo "<td colspan=\"$colspan\" style=\"color: $text; background-color: $color;\" $js><div class=\"inlineSummary\">$summary_text</div></td>";
+	switch ($color_select)
+	{
+		case "my_res":
+			$boxed_summary_text = "Your current reservation.";
+			break;
+		case "my_past_res":
+			$boxed_summary_text = "Your past reservation.";
+			break;
+		case "other_past_res":
+			$boxed_summary_text = "Past reservation of another person.";
+		 	break;
+		case "other_res":
+			$boxed_summary_text = "Reservation of another person.";
+	}
+
+    echo "<td colspan=\"$colspan\" style=\"color: $text; background-color: $color; background-image: 
+	url($image); background-repeat: repeat\" $js><div class=\"boxedSummary\"><div class=\"inlineSummary\">$summary_text</div></div></td>";
 }
 
 /**
@@ -300,7 +392,7 @@ function write_blackout($colspan, $viewable, $blackoutid, $summary = '', $showsu
 
     $summary_text = $summary->toScheduleCell();
 
-    echo "<td colspan=\"$colspan\" style=\"color: $text; background-color: $color;\" $js><div class=\"inlineSummary\">$summary_text</div></td>";
+    echo "<td colspan=\"$colspan\" style=\"color: $text; background-color: $color;\" $js ><div class=\"inlineSummary\">$summary_text</div></td>";
 }
 
 /**
@@ -312,6 +404,47 @@ function print_summary_div() {
 <div id="summary" class="summary_div" style="width: 150px;"></div>
 <?php
 }
+
+/**
+* Writes out a div to be used for time slots mouseovers
+* @param none
+*/
+function print_timeslotinfo()
+{
+?>
+	<div id="timeslotinfo"> Select a time-slot to make a reservation.</div>
+<?php
+}
+
+function startNavCalTable() {
+?>
+	<table id="navcaltable" width="100%" border="0" cellpadding="0" cellspacing="0" style= "padding-top:5px;">
+	<tr>
+	<td style="vertical-align:top; width:16%; border:solid 1px #36648B; background-color:#FFFFFF;">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
+		  <tr>
+		    <td>
+		      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+		        <tr>
+		          <td class="tableTitle" style="background-color:#A2B5CD; padding-left: 8px;">
+				   <?php echo translate('Calendar')?>
+				  </td>
+		        </tr>
+		      </table>
+<?php
+}
+
+function endNavCalTable() {
+	?>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+<?php
+}
+
 
 /**
 * Print links to jump to new dates
@@ -345,17 +478,22 @@ function print_jump_links($_date, $viewdays, $printAllCols) {
     <table width="100%" border="0" cellspacing="0" cellpadding="5" align="center">
      <tr>
       <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - 7, $y)) . "&amp;$scheduleid", translate('Prev Week'), '', '', translate('Jump 1 week back')) ?></h5></td>
+
       <?php if ($printAllCols) { ?>
       <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - $viewdays, $y)) . "&amp;$scheduleid", translate('Prev days', array($viewdays)), '', '', translate('Previous days', array($viewdays))) ?></h5></td>
       <?php } ?>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . "?$scheduleid", translate('This Week'), '', '', translate('Jump to this week')) ?></h5></td>
+      <?php if ($printAllCols) { ?>
+	<td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y') . "&amp;$scheduleid", translate('Today'), '', '', translate('Jump to today')) ?></h5></td>
+	  <?php } else {?>	 
+	<td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . "?$scheduleid", translate('This Week'), '', '', translate('Jump to this week')) ?></h5></td> <?php } ?>
+	  	
       <?php if ($printAllCols) { ?>
       <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + $viewdays, $y)) . "&amp;$scheduleid", translate('Next days', array($viewdays))) ?></h5></td>
       <?php } ?>
       <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + 7, $y)) . "&amp;$scheduleid", translate('Next Week'), '', '', 'Jump 1 week ahead') ?></h5></td>
      </tr>
      <tr>
-      <td align="center" colspan="<?php echo ($printAllCols) ? '5' : '3';?>">
+<!--      <td align="center" colspan="<?php echo ($printAllCols) ? '5' : '3';?>">
       <div name="jumpWeek" id="jumpWeek">
          <?php
          $boxes = str_replace('%m', '<input type="text" name="jumpMonth" id="jumpMonth" value="' . translate('mm') . '" class="textbox" size="3" maxlength="2" onclick="this.value = \'\';" />', $boxes);
@@ -368,7 +506,42 @@ function print_jump_links($_date, $viewdays, $printAllCols) {
       </td>
      </tr>
     </table>
-    <h5 align="center"><?php $link->doLink("javascript: window.open('popCalendar.php?$scheduleid','calendar','width=260,height=250,scrollbars=no,location=no,menubar=no,toolbar=no,resizable=yes'); void(0);", translate('View Monthly Calendar'), '', '', translate('Open up a navigational calendar'))?></h5>
+    <h5 align="center"><?php $link->doLink("javascript: window.open('popCalendar.php?$scheduleid','calendar','width=260,height=250,scrollbars=no,location=no,menubar=no,toolbar=no,resizable=yes'); void(0);", translate('View Monthly Calendar'), '', '', translate('Open up a navigational calendar'))?></h5> -->
 <?php
+}
+
+/**
+* Print links to jump to new dates in calendar view navigation
+* This function prints out the HTML links to allow
+*  users to navigate back/forward one month.
+* @param int $_date timestamp of first day of week on schedule
+* @param bool $printAllCols whether or not to print the 5 column jump
+*/
+function print_calendar_jump_links($_date) {
+	global $link;
+	global $months_full;
+	
+	if (isset($_GET['scheduleid']))
+        $scheduleid = $_GET['scheduleid'];
+    else
+        $scheduleid = '';
+
+    $scheduleid = 'scheduleid=' . $scheduleid;        // Make querystring part
+	
+	$date = getdate($_date);
+    $m = $date['mon'];
+    $d = $date['mday'];
+    $y = $date['year'];
+	$date_string = $months_full[$m-1] . ' ' . $y
+
+?>
+	<br/><h4 align="center">	
+	<?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y', mktime(0,0,0, $m - 1, $d, $y)) . "&amp;$scheduleid", '&lt;');
+	
+	echo "&nbsp;&nbsp;&nbsp;$date_string&nbsp;&nbsp;&nbsp;";
+	
+	$link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y', mktime(0,0,0, $m + 1, $d, $y)) . "&amp;$scheduleid", '&gt;'); ?>
+	</h4>
+<?php 	
 }
 ?>

@@ -26,6 +26,7 @@ function print_title($name) {
 */
 function begin_reserve_form($show_repeat, $is_blackout = false) {
 	echo '<form name="reserve" id="reserve" method="post" action="' . $_SERVER['PHP_SELF'] . '?is_blackout=' . intval($is_blackout) . '" style="margin: 0px"' . " onsubmit=\"return check_reservation_form(this);\">\n";	
+
 }
 
 /**
@@ -35,20 +36,29 @@ function begin_reserve_form($show_repeat, $is_blackout = false) {
 */
 function begin_container() {
 ?>
-<!-- begin_container() -->
-<table width="100%" cellspacing="0" cellpadding="0" border="0" id="tab-container">
+<!-- AK: Tabs are not used in current implementation-->
+<!--begin_container() -->
+<!-- <table width="100%" cellspacing="0" cellpadding="0" border="0" id="tab-container">
 <tr class="tab-row">
-<td class="tab-selected" id="tab_basic" onclick="javacript: clickTab(this, 'pnl_basic');"><a href="javascript:void(0);"><?php echo translate('Basic')?></a></td>
-<td class="tab-not-selected" id="tab_advanced" onclick="javacript: clickTab(this, 'pnl_advanced');" style="border-left-width:0px;"><a href="javascript:void(0);"><?php echo translate('Participants')?></a></td>
-<td class="tab-not-selected" id="tab_additional" onclick="javacript: clickTab(this, 'pnl_additional');" style="border-left-width:0px;"><a href="javascript:void(0);"><?php echo translate('Accessories')?></a></td>
+<td class="tab-selected" id="tab_basic" onclick="javacript: clickTab(this, 'pnl_basic');"><a href="javascript:void(0);"><?php /* echo translate('Basic')*/?></a></td>
+<td class="tab-not-selected" id="tab_advanced" onclick="javacript: clickTab(this, 'pnl_advanced');" style="border-left-width:0px;"><a href="javascript:void(0);"><?/*php echo translate('Participants')*/?></a></td>
+<td class="tab-not-selected" id="tab_additional" onclick="javacript: clickTab(this, 'pnl_additional');" style="border-left-width:0px;"><a href="javascript:void(0);"><?/*php echo translate('Accessories')*/?></a></td>
 <td class="tab-filler">&nbsp;</td>
 </tr>
-</table>
+</table> -->
 <table width="100%" cellspacing="0" cellpadding="0" border="0" class="tab-main">
   <tr>
     <td id="main-tab-panel" style="padding:7px;">
 <?php
 }
+
+function SubmitForm($FormName)
+//JavaScript function to submit a form programmatically
+//$FormName must be form´s name (as specified in the opening form tag)
+{
+	echo '<script language="javascript">document.'.$FormName.'.submit()</script>';
+}
+	
 
 /**
 * Prints the basic reservation form elements
@@ -64,7 +74,7 @@ function print_basic_panel(&$res, &$rs, $is_private) {
       <div id="pnl_basic" style="display:table; width:100%; position: relative;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td width="330">
+            <td>
 			<!-- Content begin -->
 <?php
 	print_resource_data($rs, ($res->type == RES_TYPE_ADD ? 2 : 1));		// Print resource info
@@ -90,20 +100,20 @@ function print_basic_panel(&$res, &$rs, $is_private) {
 	if ($res->type == RES_TYPE_MODIFY) {
 		print_del_checkbox();
 	}
-
-	if ($res->type == RES_TYPE_ADD || $res->type == RES_TYPE_MODIFY) {		// Print out repeat reservation box, if applicable
-		divide_table();
-		if ($res->type == RES_TYPE_ADD) {
-			print_repeat_box(date('m', $res->start_date), date('Y', $res->start_date));
+	//AK: repeat reservation box and reminder box are not needed in out implementation
+	//if ($res->type == RES_TYPE_ADD || $res->type == RES_TYPE_MODIFY) {		// Print out repeat reservation box, if applicable
+	//	divide_table();
+	//	if ($res->type == RES_TYPE_ADD) {
+	//		print_repeat_box(date('m', $res->start_date), date('Y', $res->start_date));
 	
-			if( $res->is_pending ) {
-				 print_pending_approval_msg();
-			}
-		}
-		$reminder_times = $conf['app']['allowed_reminder_times'];
-		print_reminder_box($reminder_times, $res->reminder_minutes_prior, $res->reminderid);
-	}
-?>
+	//		if( $res->is_pending ) {
+	//			 print_pending_approval_msg();
+	//		}
+	//	}
+	//	$reminder_times = $conf['app']['allowed_reminder_times'];
+	//	print_reminder_box($reminder_times, $res->reminder_minutes_prior, $res->reminderid);
+//	}
+	?>
 			<!-- Content end -->
 			</td>
           </tr>
@@ -423,7 +433,7 @@ else if ($allow_anon_participation) {
 if ($allow_participation || $allow_anon_participation) {
 	echo '<p align="center">';
 	echo '<button type="button" name="btn_join" value="' . $join . '" class="button" onclick="submitJoinForm(' . (int)$allow_participation . ');">' . $join . '</button>';
-	echo ($parentid != null) ? ' <input type="checkbox" name="join_parentid"/> ' . translate('Join All Recurring') : '';
+	//echo ($parentid != null) ? ' <input type="checkbox" name="join_parentid"/> ' . translate('Join All Recurring') : '';
 	echo '</p>';
 }
 ?>
@@ -502,8 +512,8 @@ function print_buttons_and_hidden(&$res) {
 		echo '&nbsp;&nbsp;&nbsp;<input type="button" name="close" value="' . translate('Cancel') . '" class="button" onclick="window.close();" />';
 	}
 	if ($type != RES_TYPE_ADD && $is_owner) {
-		echo '&nbsp;&nbsp;';
-		print_export_button($res->id);
+		// echo '&nbsp;&nbsp;';
+		// print_export_button($res->id);
 	}
 	
 	echo '</p>';
@@ -552,12 +562,12 @@ function print_resource_data(&$rs, $colspan = 1) {
           <td class="cellColor"><?php echo $rs['location']?>
           </td>
         </tr>
-        <tr>
+        <tr class="noshow">
           <td width="100" class="formNames"><?php echo translate('Phone')?></td>
           <td class="cellColor"><?php echo $rs['rphone']?>
           </td>
         </tr>
-        <tr>
+        <tr class="noshow">
           <td width="100" class="formNames"><?php echo translate('Notes')?></td>
           <td class="cellColor"><?php echo $rs['notes']?>
           </td>
@@ -596,7 +606,7 @@ function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false)
        <table width="100%" border="0" cellspacing="1" cellpadding="0">
         <tr>
          <td colspan="2" class="cellColor">
-         <h5 align='center'>
+         <h5 align='left'>
 <?php
          // Print message depending on viewing type
          switch($type) {
@@ -665,10 +675,10 @@ function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false)
             }
             echo "</select>\n</td>\n";
 			if ($print_min_max & !$allow_multi) {
-				echo '</tr><tr class="cellColor">'
+				echo '</tr><tr class="noshow">'
 						. '<td colspan="2">' . translate('Minimum Reservation Length') . ' ' . Time::minutes_to_hours($rs['minres'])
 						. '</td></tr>'
-						. '<tr class="cellColor">'
+						. '<tr class="noshow">'
 						. '<td colspan="2">' . translate('Maximum Reservation Length') . ' ' . Time::minutes_to_hours($rs['maxres'])
 						. '</td>';
 			}
@@ -700,7 +710,7 @@ function print_user_info($type, $user) {
      <td>
       <table width="100%" border="0" cellspacing="1" cellpadding="0">
        <tr>
-        <td colspan="2" class="cellColor"><h5 align="center"><?php echo ($type=='v' || $type=='d') ? translate('Reserved for') : translate('Will be reserved for')?></h5></td></tr>
+        <td colspan="2" class="cellColor"><h5 align="left"><?php echo ($type=='v' || $type=='d') ? translate('Reserved for') : translate('Will be reserved for')?></h5></td></tr>
        <tr>
         <td width="100" class="formNames"><?php echo translate('Name')?></td>
          <td class="cellColor"><div id="name" style="position: relative;float:left;"><?php echo $user['fname'] . ' ' . $user['lname']?></div><?php if (Auth::isAdmin() && ($type == RES_TYPE_MODIFY || $type == RES_TYPE_ADD)) { echo "&nbsp;&nbsp;<a href=\"javascript:window.open('user_select.php','selectuser','height=430,width=570,resizable');void(0);\">" . translate('Change') . '</a>'; } ?></td>
@@ -898,7 +908,7 @@ function print_pending_approval_msg() {
 */
 function print_summary($summary, $type) {
 ?>
-   <table width="100%" border="0" cellspacing="0" cellpadding="1">
+   <table width="100%" border="0" cellspacing="0" cellpadding="1" class="noshow">
     <tr class="tableBorder">
      <td>
       <table width="100%" border="0" cellspacing="1" cellpadding="0">
@@ -972,7 +982,8 @@ var now = new Date(<?php echo date('Y', $res->start_date) . ',' . (intval(date('
 if ($res->get_type() == RES_TYPE_ADD) {
 ?>
 // Recurring calendar
-Calendar.setup(
+// AK: Recuring Calendar is not used.
+/*Calendar.setup(
 {
 inputField : "repeat_until", // ID of the input field
 ifFormat : "<?php echo '%m' . INTERNAL_DATE_SEPERATOR . '%d' . INTERNAL_DATE_SEPERATOR . '%Y'?>", // the date format
@@ -981,7 +992,7 @@ date : now,
 displayArea : "_repeat_until",
 daFormat : "<?php echo $dates['general_date']?>" // the date format
 }
-);
+);*/
 <?php }  if ($allow_multi && ($res->get_type() == RES_TYPE_ADD || $res->get_type() == RES_TYPE_MODIFY)) { ?>
 //php Start date calendar
 Calendar.setup(

@@ -293,7 +293,7 @@ class DBEngine {
         $return = array();
         $values = array();
 
-        $sql = 'SELECT machid, name, status, approval, min_notice_time, max_notice_time FROM ' . $this->get_table('resources');
+        $sql = 'SELECT machid, name, status, approval, min_notice_time, max_notice_time, floor_plan FROM ' . $this->get_table('resources');
         if ($scheduleid != null) {
             $sql .= ' WHERE scheduleid = ?';
             $values = array($scheduleid);

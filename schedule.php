@@ -42,10 +42,22 @@ $t->startMain();
 ob_start();		// The schedule may take a long time to print out, so buffer all of that HTML data
 
 if ($s->isValid) {
-	$s->print_schedule();
 	
+	
+	// Print Calendar Navigation on the left side
+	$t->startNavLinkTable();
+	$t->showNavLinksTable(Auth::isAdmin());
+	$t->endNavLinkTable();
+	$s->print_calendars();
+	
+	//$s->print_color_key();
+	
+	$t->splitTable();
+
 	// Print out links to jump to new date
-	$s->print_jump_links();
+	//	$s->print_jump_links();
+	
+	$s->print_schedule();
 }
 else {
 	$s->print_error();

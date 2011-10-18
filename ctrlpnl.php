@@ -29,17 +29,19 @@ $t->startMain();
 
 $user = new User(Auth::getCurrentID());
 $is_group_admin = $user->is_group_admin();
-// Break table into 2 columns, put quick links on left side and all other tables on the right
-startQuickLinksCol();
-showQuickLinks(Auth::isAdmin(), $is_group_admin);		// Print out My Quick Links
-startDataDisplayCol();
+
+$t->startNavLinkTable();
+$t->showNavLinksTable(Auth::isAdmin());
+$t->endNavLinkTable();
+$t->splitTable();
 
 $order = array('number');
 $announcements = $db->get_announcements(mktime());
-
-showAnnouncementTable( $announcements, $db->get_err() );
-
-printCpanelBr();
+if ($announcements)
+{
+	showAnnouncementTable( $announcements, $db->get_err() );
+	printCpanelBr();
+}
 
 // Valid order values in reservation retreival
 $order = array('start_date', 'name', 'starttime', 'endtime', 'created', 'modified');
@@ -49,12 +51,12 @@ showReservationTable($res, $db->get_err());	// Print out My Reservations
 
 printCpanelBr();
 
-showInvitesTable($db->get_user_invitations(Auth::getCurrentID(), true), $db->get_err());
-printCpanelBr();
+// AK: Invitations are not used in our case.
+//showInvitesTable($db->get_user_invitations(Auth::getCurrentID(), true), $db->get_err());
+//printCpanelBr();
 
-showParticipatingTable($db->get_user_invitations(Auth::getCurrentID(), false), $db->get_err());
-
-printCpanelBr();
+//showParticipatingTable($db->get_user_invitations(Auth::getCurrentID(), false), $db->get_err());
+//printCpanelBr();
 
 if ($conf['app']['use_perms']) {
 	showTrainingTable($db->get_user_permissions(Auth::getCurrentID()), $db->get_err());

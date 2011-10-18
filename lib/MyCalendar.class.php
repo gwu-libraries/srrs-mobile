@@ -99,9 +99,9 @@ class MyCalendar {
 	*/
 	function print_calendars($javascript) {
 		list($month, $year) = explode('-', date('m-Y', $this->actualDate));
-		$prev = new Calendar(false, $month -1, $year);
-		$curr = new Calendar(false, $month, $year);
-		$next = new Calendar(false, $month + 1, $year);
+		$prev = new Calendar(false, true, $month -1, $year, null);
+		$curr = new Calendar(false, true, $month, $year, null);
+		$next = new Calendar(false, true, $month + 1, $year, null);
 
 		$prev->javascript = $curr->javascript = $next->javascript = $javascript;
 
@@ -111,7 +111,7 @@ class MyCalendar {
 	}
 
 	/**
-	* Determines the first date of the calender based on values passed in the querystring
+	* Determines the first date of the calender based on values passed in the query string
 	* @param MyCalendarType $type type of calendar
 	* @return datestamp of the first date to print out
 	*/

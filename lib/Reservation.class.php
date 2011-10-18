@@ -4,7 +4,7 @@
 * Provides access to reservation data
 * @author Nick Korbel <lqqkout13@users.sourceforge.net>
 * @author David Poole <David.Poole@fccc.edu>
-* @version 04-06-07
+* @version 06-18-07
 * @package phpScheduleIt
 *
 * Copyright (C) 2003 - 2007 phpScheduleIt
@@ -19,6 +19,8 @@ require_once($basedir . '/lib/Resource.class.php');
 require_once($basedir . '/lib/PHPMailer.class.php');
 require_once($basedir . '/lib/Reminder.class.php');
 require_once($basedir . '/templates/reserve.template.php');
+// AK: Required to get number of reservations
+require_once($basedir . '/lib/ReservationSearch.php');
 
 
 class Reservation {
@@ -183,6 +185,8 @@ class Reservation {
 		if (!$this->is_blackout) {
 			$this->check_perms();			// Only need to check once
 			$this->check_min_max();
+			//$this->check_day_quantity();    // AK: Сheck number of reservations per day AK: not in use
+			$this->check_total_quantity();  // AK: Check total number of reservation per user per day
 		}
 
 		if ($this->check_startdate()) {
@@ -401,7 +405,7 @@ class Reservation {
 			$userinfo = array();
 			for ($i = 0; $i < count($this->users); $i++) {
 				if ($this->users[$i]['owner'] != 1) {
-					$userinfo[] = $this->users[$i]['memberid'] . '|' . $this->users[$i]['email'];
+					$userinfo[$this->users[$i]['memberid']] = $this->users[$i]['email'];
 				}
 			}
 			if (!empty($userinfo)) {
@@ -446,7 +450,7 @@ class Reservation {
 		$date_vals = getdate();		
 		$month = $date_vals['mon'];
 		$day = $date_vals['mday'];
-		$hour = $date_vals['hours'];
+		$hour = $date_vals['hours']+2;
 		$min = $date_vals['minutes'];
 
 		$min_days = intval($min_notice / 24);
@@ -556,11 +560,78 @@ class Reservation {
 
 		if (!$has_perm)
 		   CmnFns::do_error_box(
-				   translate('You do not have permission to use this resource.')
+				   translate('You do not have permission to use this resource.') 
 				   , 'width: 90%;'
 				   , $kill);
 
 		return $has_perm;
+	}
+	
+	/** AK:
+	* Controls number of reservation per day per user per resource.
+	* @param none
+	*/	
+	function check_day_quantity()
+	{
+		if ($this->adminMode)                    // Admin always has permission
+		   return true;
+		
+		$is_valid = true;
+		$number_of_reservations = 0;
+		$max_reservations_per_day = $this->resource->get_property('max_reservations_per_day');
+		
+		$reservation_search = new ReservationSearch(new ReservationSearchDB());
+		$reservations = $reservation_search->getReservations($this->user->get_id(), $this->start_date, $this->end_date);
+		
+		foreach ($reservations as $value)
+		//while (list(, $value) = each($reservations)) //change to while if for each doesn't work
+		{
+			if ($value->resource->machid == $this->resource->machid)
+				{
+					$number_of_reservations = $number_of_reservations + 1;
+				}
+		}
+				
+		if ($max_reservations_per_day != '' && $number_of_reservations >= $max_reservations_per_day)
+		{
+			$is_valid = false;
+		}
+		
+		if(!$is_valid)
+		{
+			$this->add_error('Number of reservations per day for this resource exceeded.' . '<br /><br >' . 'Maximum number of reservations per day for this resource is'. ' ' . $max_reservations_per_day);
+		}
+	
+		return $is_valid;
+	}
+	
+	/** AK:
+	* Controls total number of reservation per day per user. Data is taken from the config file.
+	* @param none
+	*/
+	function check_total_quantity()
+	{
+		global $conf;
+		if ($this->adminMode)                    // Admin always has permission
+		   return true;
+		
+		$is_valid = true;
+		$number_of_reservations = 0;
+		$max_reservations_per_day = $conf['app']['max_reservations_per_day_per_user'];
+		$reservation_search = new ReservationSearch(new ReservationSearchDB());
+		$reservations = $reservation_search->getReservations($this->user->get_id(), $this->start_date, $this->end_date);
+		
+		if ($max_reservations_per_day != '' && sizeof($reservations) >= $max_reservations_per_day)
+		{
+			$is_valid = false;
+		}
+		
+		if(!$is_valid)
+		{
+			$this->add_error('Total number of reservations per day exceeded.' . '<br /><br >' . 'Total number of reservations per day is'. ' ' . $max_reservations_per_day);
+		}
+	
+		return $is_valid;	
 	}
 
 	/**
@@ -581,7 +652,7 @@ class Reservation {
 		if (Auth::getCurrentID() != $this->user->get_id() && !$this->adminMode) { $this->type = RES_TYPE_VIEW; };
 
 		$rs = $this->resource->properties;
-		if ($this->type == RES_TYPE_ADD && $rs['approval'] == 1) {
+		if ($this->type == RES_TYPE_ADD && $rs['approval'] == 1 && !Auth::IsAdmin()) {
 			$this->is_pending = true;		// On the initial add, make sure that the is_pending flag is correct
 		}
 
@@ -596,18 +667,25 @@ class Reservation {
 			$this->end = $this->start + $this->sched['timespan'];
 		}
 		
-		print_basic_panel($this, $rs, $is_private);		// Contains resource/user info, time select, summary, repeat boxes
+		print_basic_panel($this, $rs, $is_private && !$is_owner);		// Contains resource/user info, time select, summary, repeat boxes
 
 		if ($this->is_blackout || $is_private) {
 			print_users_panel($this, array(), null, '', false, false);	// No advanced for either case
-			print_additional_tab($this, array(), null, false, false);
 		}
-		else {
+		else
+		{
 			$this->user->get_id();
 
 			$all_users = ($is_owner) ? $this->db->get_non_participating_users($this->id, Auth::getCurrentID()) : array();
 			print_users_panel($this, $all_users, $is_owner, $rs['max_participants'], true, $day_has_passed);
-
+		}
+		
+		if ($this->is_blackout)
+		{
+			print_additional_tab($this, array(), false, false);
+		}
+		else
+		{			
 			$all_resources = ($is_owner) ? $this->db->get_non_participating_resources($this->id) : array();
 			print_additional_tab($this, $all_resources, $is_owner, true);
 		}
@@ -705,7 +783,7 @@ class Reservation {
 		if (!empty($this->summary)) {
 			$text .= stripslashes(translate_email('reservation_activity_4', ($this->summary)));
 		}
-
+		$phone = "202-994-9870";
 		$text .= translate_email('reservation_activity_5', $adminemail, $phone, $conf['app']['title'], $url, $url);
 
 		if (!empty($techEmail)) $text .= translate_email('reservation_activity_6', $techEmail, $techEmail);

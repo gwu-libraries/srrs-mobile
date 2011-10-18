@@ -45,8 +45,11 @@ $tools = array (
 				'addAnnouncement'	=> 'add_announcement',
 				'editAnnouncement'	=> 'edit_announcement',
 				'delAnnouncement'	=> 'del_announcement',
+				
+				'delFloorPlan'		=> 'del_floorplan',
 
 				'adminToggle' => 'toggle_admin',
+				'lockToggle' => 'toggle_lock',
 
 				'addAdditionalResource' => 'add_additional_resource',
 				'editAdditionalResource' => 'edit_additional_resource',
@@ -203,6 +206,35 @@ function del_users() {
 
 	$db->del_users($_POST['memberid']);
 	CmnFns::write_log('Users deleted. ' . join(', ', $_POST['memberid']), $_SESSION['sessionID']);
+	print_success();
+}
+
+/**
+* Deletes a floor plan file from the file system
+* @param none
+*/
+function del_floorplan() {
+	global $conf;
+	
+	if (empty($_POST['floorplanfilename']))
+		print_fail(translate('You did not select any files to delete.') . '<br />');
+	
+	foreach( $_POST['floorplanfilename'] as $value) {
+		$filename = $conf['app']['floor_plans_dir'] . '/' . $value;
+		$fh = fopen($filename, 'w');
+		if ($fh == FALSE)
+		{
+			echo "failed to open file";
+		}
+		fclose($fh);
+		$result = unlink($fh);
+		if ($result == FALSE)
+		{
+			echo "failed to delete the file";
+		}
+	}
+
+	CmnFns::write_log('Floor Plan deleted. ' . join(', ', $floorplanfilename), $_SESSION['sessionID']);
 	print_success();
 }
 
@@ -378,6 +410,23 @@ function toggle_admin() {
 	$db->change_admin_status($_GET['memberid'], $is_admin);
 
 	CmnFns::write_log('Admin status chagned for user: ' . $_GET['memberid'], $_SESSION['sessionID']);
+	print_success();
+}
+
+/**
+* Changes a users 'is_locked' status to lock or unlock user
+* @param none
+*/
+function toggle_lock() {
+	global $db;
+
+	$is_locked = 0;
+
+	if (isset($_GET['status']) && $_GET['status'] == 1) { $is_locked = 1; }
+
+	$db->change_lock_status($_GET['memberid'], $is_locked);
+
+	CmnFns::write_log('User lock status chagned for user: ' . $_GET['memberid'], $_SESSION['sessionID']);
 	print_success();
 }
 
@@ -635,6 +684,20 @@ function check_resource_data($data) {
 		$rs['name'] = $data['name'];
 	}
 
+	if (empty($data['floor_plan'])) {
+		$msg[] = translate('Valid floor plan must be selected');
+	}
+	else {
+		if($data['floor_plan'] == 'none')
+		{
+			$rs['floor_plan'] = NULL;
+		}
+		else
+		{
+			$rs['floor_plan'] = $data['floor_plan'];
+		}
+	}
+
 	if (empty($data['scheduleid'])) {
 		$msg[] = translate('Valid schedule must be selected');
 	}
@@ -675,6 +738,15 @@ function check_resource_data($data) {
 	}
 	else {
 		$rs['max_participants'] = null;
+	}
+	
+	//AK: Added to support number of reservations per day.
+	
+	if ($data['max_reservations_per_day'] != '') {
+		$rs['max_reservations_per_day'] = abs(intval($data['max_reservations_per_day']));
+	}
+	else {
+		$rs['max_reservations_per_day'] = null;
 	}
 	
 	if (trim($data['min_notice_time']) != '') {
@@ -771,7 +843,7 @@ function print_success() {
 	header("Refresh: 2; URL=$return");		// Auto send back after 2 seconds
 	$t = new Template(translate('Successful update'));
 	$t->printHTMLHeader();
-	$t->printWelcome();
+	// $t->printWelcome();
 	$t->startMain();
 	CmnFns::do_message_box(translate('Your request was processed successfully.') . '<br />'
 				. '<a href="' . $return. '">' . translate('Go back to system administration') . '</a><br />'

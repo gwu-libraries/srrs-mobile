@@ -3,7 +3,8 @@
 * Authorization and login functionality
 * @author Nick Korbel <lqqkout13@users.sourceforge.net>
 * @author David Poole <David.Poole@fccc.edu>
-* @version 05-31-06
+* @author Edmund Edgar
+* @version 07-28-07
 * @package phpScheduleIt
 *
 * Copyright (C) 2003 - 2007 phpScheduleIt
@@ -69,6 +70,186 @@ class Auth {
 		return isset($_SESSION['sessionID']) ? $_SESSION['sessionID'] : null;
 	}
 
+	/**AK:
+	* Logs the user based on GWID and Last Name provided
+	* @param string $gwid username
+	* @param string $name password
+	* @param string $cookieVal y or n if we are using cookie
+	* @param string $isCookie id value of user stored in the cookie
+	* @param string $resume page to forward the user to after a login
+	* @param string $lang language code to set
+	* @return any error message that occured during login
+	*/
+	function doLoginGwid($gwid, $name) {
+		global $conf;
+		$msg = '';
+		
+		if (empty($resume)) $resume = 'ctrlpnl.php';		// Go to control panel by default
+
+		$_SESSION['sessionID'] = null;
+		$_SESSION['sessionName'] = null;
+		$_SESSION['sessionAdmin'] = null;
+		$_SESSION['hourOffset'] = null;
+		
+		
+		//code below limits number of login attempts for the user
+		if (empty($_SESSION['loginAttempts']))
+		{
+			$_SESSION['loginAttempts'] = 1;
+		} 
+		else 
+		{
+			$_SESSION['loginAttempts']++;
+		}
+
+		if($_SESSION['loginAttempts'] >= $conf['app']['loginAttempts'])
+		{
+			$this->is_loggedin = false;
+			return $msg;
+		}
+		
+		$gwid = stripslashes($gwid);
+		$gwid = strtoupper($gwid);
+		$name = stripslashes($name);
+		$name = strtoupper($name);
+
+		
+		$adminemail = strtolower($conf['app']['adminEmail']);
+		
+		$mail = null;
+		$sn = null;
+		$fn = null;
+		$expdate = null;
+		$title = null;
+		$id = null;
+		
+		//no cookies check on WRLC authentication
+		//make a request to WRLC check for user id provided
+		$url= "https://www.aladin.wrlc.org/Z-LDAP/Lookup?cn=$gwid&eduPersonOrgDN=9";
+		
+		if ( $response = file_get_contents( $url ) ) {
+           $xml = simplexml_load_string( $response );
+			
+           foreach ($xml->xpath('//entry') as $entry) {
+               foreach ($entry->attr as $attribute) {
+               		switch((string) $attribute['name']) { // Get attributes as element indices
+			    		case 'mail':
+							foreach ($attribute->value as $value) {
+						    	$mail = $value;
+						    }
+			        	break;
+			    		case 'sn':
+							foreach ($attribute->value as $value) {
+						    	$sn = $value;
+						    }
+			        	break;
+						case 'libPatronExpireDate':
+							foreach ($attribute->value as $value) {
+					    		$expdate = strtotime($value);
+					    	}
+						break;
+						case 'eduPersonEntitlement':
+						  //TODO: find out what these attributes means
+						break;
+						case 'displayName':
+							foreach ($attribute->value as $value) {
+					    		$words = split('[ ]+', $value);
+								$fn = $words[0];
+					    	}
+						break;
+						case 'eduPersonOrgUnitDN':
+							foreach ($attribute->value as $value) {
+					    		$title = $value;
+					    	}
+						break;
+						//exceptions handling
+						case 'notFoundException':
+						{
+							$msg .= translate('Login failed. Please verify your data.') . '<br/>';
+							return $msg;						
+						}
+						break;
+						case 'missingAttrException':
+						{
+							$msg .= translate('Login failed. Please verify your data.') . '<br/>';
+							return $msg;
+						}
+						break;
+			    	}
+               }
+			}
+          
+ 			if(($name == $sn && $sn != null) && (($expdate != FALSE)&& ($expdate > time())))
+			{
+				//check if user in the database already if not create a new user				
+				if ( !$id = $this->db->userExists($mail) ) {
+					$data = array(
+			            'fname' => $fn,
+			            'lname' => $sn,
+			            'emailaddress' => $mail,
+			            'phone' => '0000000000',
+			            'institution' => null,
+						'title' => $title,
+			            'logon_name' => null,
+			            'password' => $conf['app']['defaultPassword'],
+						'password2' => $conf['app']['defaultPassword'],
+			            'position' => null,
+			            'institution' => null,
+			            'lang' => $conf['app']['defaultLanguage'],
+						'timezone' => $conf['app']['default_timezone']
+			        );
+					
+					//create new user in the database
+					$id = $this->do_register_user( $data, false );
+				}
+				
+
+				$user = new User($id);	// Get user info
+
+				//check if user is locked
+				if($user->get_islocked())
+				{
+					$msg .= translate('Your account is locked. Please contact the system administrator.') . '<br/>';
+					$this->is_loggedin = false;
+					return $msg;
+				} 
+				
+				$this->is_loggedin = true;
+
+				// If it is the admin, set session variable
+				if ($user->get_email() == $adminemail || $user->get_isadmin()) {
+					$_SESSION['sessionAdmin'] = $user->get_email();
+				}
+
+				// Set other session variables
+				$_SESSION['sessionID'] = $user->get_id();
+				$_SESSION['sessionName'] = $user->get_fname();
+				$_SESSION['hourOffset'] = 0;//$user->get_timezone() - $conf['app']['timezone'];
+				if (isset($_SESSION['loginAttempts'])) unset($_SESSION['loginAttempts']);
+				
+				//updating last login date
+				$user->set_last_login(date('Y-m-d'));
+				
+				//Saving login event information to the log file
+				CmnFns::write_log('User ' . $mail . ' logged in', $user->get_id(), $_SERVER['REMOTE_ADDR']);
+				// Send them to the control panel
+				CmnFns::redirect(urldecode($resume));
+			}
+			else
+			{
+				CmnFns::write_log('Login failed.', NULL, $_SERVER['REMOTE_ADDR']);
+				$msg .= translate('Login failed. Please verify your data.') . '<br/>';
+				return $msg;
+			}
+		}
+		else
+		{
+			$msg .= translate('We could not connect to the authentication server. Please try again later.') . '<br/>';
+			return $msg;
+		}
+	
+	}
+
 	/**
 	* Logs the user in
 	* @param string $uname username
@@ -98,8 +279,9 @@ class Auth {
 		$adminemail = strtolower($conf['app']['adminEmail']);
 
 		if ($isCookie !== false) {		// Cookie is set
-			$id = $isCookie;
-			if ($this->db->verifyID($id)) {
+			$cookieValue = $isCookie;
+			
+			if ( ($id = $this->verifyCookie($cookieValue)) !== false) {
 				$ok_user = $ok_pass = true;
 			}
 			else {
@@ -186,7 +368,7 @@ class Auth {
 			// for their ID and fname.  Expires in 30 days (2592000 seconds)
 			if (!empty($cookieVal)) {
 				//die ('Setting cookie');
-				setcookie('ID', $user->get_id(), time() + 2592000, '/');
+				setcookie('ID', $this->generateCookie($user->get_id()), time() + 2592000, '/');
 			}
 
 			 // If it is the admin, set session variable
@@ -209,6 +391,31 @@ class Auth {
 			// Send them to the control panel
 			CmnFns::redirect(urldecode($resume));
 		}
+	}
+	
+	function verifyCookie($cookieValue)
+	{
+		$parts = explode('|', $cookieValue);
+		if (count($parts) != 2) {
+			return false;
+		}
+		
+		$memberid = $parts[0];
+		if ( $cookieValue == $this->generateCookie($memberid) ) {
+			return $memberid;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	function generateCookie($memberid)
+	{		
+		$passwordhash = $this->db->getPassword($memberid);
+		$cookiehash = md5($memberid . substr($passwordhash, 1, strlen($passwordhash) -5) );
+		
+		return $memberid.'|'.$cookiehash;
 	}
 
 	/**
@@ -325,7 +532,7 @@ class Auth {
 						. ' email- '. $data['emailaddress'] . ' phone- ' . $data['phone'] . ' institution- ' . $data['institution']
 						. ' position- ' . $data['position'], $id);
 
-		if( !$conf['ldap']['authentication'] ) {
+		if( !$conf['ldap']['authentication'] && !$conf['app']['wrlc']) {
 			$url = 'ctrlpnl.php';
 			if ($adminCreated){
 				$url = 'admin.php?tool=users';
@@ -349,6 +556,8 @@ class Auth {
 	function do_edit_user($data, $adminUpdate) {
 		global $conf;
 
+		$data['timezone'] = $conf['app']['default_timezone'];
+		
 		// Verify user data
 		$msg = $this->check_all_values($data, true);
 		if (!empty($msg)) {
@@ -394,9 +603,11 @@ class Auth {
 		$use_logonname = (bool)$conf['app']['useLogonName'];
 
 		$msg = '';
-
+		
 		if ($use_logonname && empty($data['logon_name'])) {
 			$msg .= translate('Valid username is required') . '<br/>';
+
+			
 		}
 		else if ($use_logonname) {
 			$data['logon_name'] = htmlspecialchars($data['logon_name']);

@@ -1,7 +1,6 @@
-/* Last modified 12-23-05 */
 body {
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    background-color: #F0F0F0;    			
+    background-color: #ffffff;    			
     margin-top: 5px;
     margin-right: 5px;
     margin-bottom: 5px;
@@ -43,6 +42,117 @@ table {
 	border-width: 0;
 	font-size: 11px;
 }
+
+.noshow {
+	display:none;
+}
+
+#instructionbox{
+	width: 100%;
+}
+
+.inst {
+	float: left;
+	width: 470px;
+	margin: 10px 10px 10px 0;
+}
+
+.insttitle {
+	background-image: url(img/insttitle.gif);
+	background-repeat:repeat-x;
+	font-size: 1.5em;
+	color: #113855;
+	font-weight: 600;
+	padding-left: 8px;
+}
+
+.instbody {
+	border: 1px solid #8799a9;
+}
+
+.instbody ul {
+	margin: 8px;
+	margin-left: 24px;
+	padding: 0;
+}
+
+.instbody li {
+	list-style-image: url(img/arrow_gold2.gif);
+	font-size: 10pt;
+}
+
+#banner {
+width 960px;
+height: 242px;
+margin-left: 8px;
+background-image: url(img/banner.jpg);
+background-repeat: no-repeat;
+padding: 0;
+}
+
+#banner-bg {
+width: 100%;
+height 242px;
+background-image: url(img/headerbg.jpg);
+background-repeat: repeat-x;
+}
+
+#comment{
+	padding-top: 10px;
+	margin-left: 750px;
+	color: white;
+	font-size: 12pt;
+}
+
+#comment a {
+	color: white;
+}
+
+#maintable {
+float: left;
+}
+
+#maintable td {
+margin: 0;
+margin-right: 8px;
+padding: 0;
+}
+
+#navcaltable {
+margin-right: 10px;
+}
+
+#navtable table {
+margin-right:5px;
+}
+
+#navtable td{
+margin: 0;
+padding: 0;
+font-size: 12pt;
+}
+
+#quicklinks td{
+	border: 1px solid #8799a9;
+
+}
+
+#quicklinks ul {
+	margin: 8px;
+	margin-left: 24px;
+	padding: 0;
+}
+
+#quicklinks li {
+	list-style-image: url(img/arrow_gold2.gif);
+	font-size: 11pt;
+}
+
+
+#footer {
+float: left;
+}
+
 /*
 Error box settings
 */
@@ -81,17 +191,29 @@ Form button settings
 Data table head row settings
 */
 .tableTitle {
-    font-size: 11px;
-    font-weight: bold;
-    color: #FFFFFF;
-    padding-left: 10px; padding-top: 1px; padding-bottom: 1px; padding-right: 5px;
-	background-color: #36648B;
-	height: 20px;
+	background-image: url(img/insttitle.gif);
+	background-repeat:repeat-x;
+	font-size: 1.1em;
+	color: #113855;
+	font-weight: 600;
+	padding-left: 8px;
+    padding-top: 1px; padding-bottom: 1px; padding-right: 5px;
+	vertical-align: middle;
+}
+
+.tableTitle {
+	background-image: url(img/insttitle.gif);
+	background-repeat:repeat-x;
+	font-size: 1em;
+	color: #113855;
+	font-weight: 600;
+	padding-left: 8px;
+    padding-top: 1px; padding-bottom: 1px; padding-right: 5px;
 	vertical-align: middle;
 }
 
 .tableTitle a, .tableTitle a:hover {
-	color: #FFFFFF;
+	color: #113855;
 	text-decoration: none;
 }
 /*
@@ -143,6 +265,11 @@ td.cellColor1, .cellColor1 td, .cellColor1 {
     background-color: #D56060;
     font-size: 11px;
 }
+
+td.inactiveCell
+{
+background-color: #777777;
+}
 /*
 Table data row heading settings
 */
@@ -166,12 +293,21 @@ td.scheduleTimes, .scheduleTimes td {
 /*
 Date cell for the scheduler
 */
-td.scheduleDate, .scheduleDate td, .scheduleDateHeader {
+td.scheduleDate, .scheduleDate td, .scheduleDateHeader, td.scheduleDateCurrent {
     font-size: 11px;
     color: #FFFFFF;
     background-color: #A2B5CD;
     text-align: center;
     padding: 2px;
+}
+
+td.scheduleDateCurrent {
+	font-weight: bold;
+	background-color: #5E7FB1;
+}
+
+td.scheduleTimePast{
+	color: #BDBDBD;
 }
 
 .scheduleDateHeader {
@@ -213,7 +349,7 @@ td.reservedCell {
     background-color: #B0C4DE;
 }
 td.reservationOver {
-	background-color: #3EBD30;
+	background-color: #9CF7A0;
 }
 /*
 Inactive resource text color
@@ -260,7 +396,42 @@ Summary popup box
     font-size: 11px;
 }
 
+#timeslotinfo
+{
+	position: relative;
+	color: RED;
+	text-align: center;
+	border: solid #686767 1px;
+	padding: 3px;
+	background-color: #05F711;
+	overflow: visible;
+	color: #FFFFFF;
+	border-bottom-style: none;
+}
+
+/*Summary popup box V2*/
+.boxedSummary {
+	position:relative;
+    }
+
+.boxedSummary .boxedSummary_more {
+	display:none;
+}
+
+.boxedSummary:hover .boxedSummary_more {
+	display:block;
+    position:absolute;
+    z-index:1;
+    left:20px;
+    top:5px;
+    max-width: 150px;
+	min-width: 150px;
+    padding:5px 5px 5px;
+    border:1px solid #36648B;
+    }
+
 /*
+
 Recurring reservation box
 */
 .recur_box {
@@ -293,11 +464,23 @@ Calendar settings
 .emptyDayStyle {
 	background-color: #D5D8D3;
 }
+
+.selectedDayBoxStyle{
+	width: 25px;
+	height: 25px;
+	font-size: 10px;
+	font-weight: bold;
+	text-decoration: underline;
+	background-color: #D5D8D3;
+	text-align: center;
+}
+
 .dayNamesStyle {
 	font-size: 11px;
 	text-align: center;
 	height: 25px;
-	background-color: #DDCAF6;
+	background-color: #5E7FB1;
+	color: #FFFFFF;
 }
 .navMonthStyle {
 	font-size: 11px;
@@ -346,6 +529,7 @@ Calendar settings
 	border-right:solid 1px #CCCCCC;
 	border-left:solid 1px #CCCCCC;
 	border-bottom:solid 1px #CCCCCC;
+	border-top:solid 1px #CCCCCC;
 }
 /*************************************
 
@@ -503,3 +687,24 @@ div.inlineSummary{
 	overflow:hidden;
 	height:13px;
 }
+
+#portal-footer {
+float: left;
+width: 100%;
+border: 0;
+background-image: url(img/long_blue.jpg);
+background-repeat: repeat-x;
+padding: 0;
+height: 28px;
+}
+.footer-segment {
+width: 25%;
+float: left;
+color: #ffffff;
+}
+#footer-container {
+width: 960px;
+margin-left: auto;
+margin-right: auto;
+}
+

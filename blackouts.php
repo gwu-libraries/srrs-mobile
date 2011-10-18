@@ -37,6 +37,11 @@ $t->printWelcome();
 // Begin main table
 $t->startMain();
 
+$t->startNavLinkTable();
+$t->showNavLinksTable(Auth::isAdmin());
+$t->endNavLinkTable();
+$t->splitTable();
+
 $s->print_schedule();
 
 // Print out links to jump to new date

@@ -29,6 +29,8 @@ class User {
 	var $groups = null;	//
 	var $lang;
 	var $timezone;
+	var $last_login;
+	var $is_locked;
 
 	var $is_valid = false;
 	var $err_msg = null;
@@ -74,6 +76,8 @@ class User {
 		$this->is_admin = (isset($data['is_admin']) && $data['is_admin'] == 1);
 		$this->lang 	= $data['lang'];
 		$this->timezone	= $data['timezone'];
+		$this->last_login = $data['last_login'];
+		$this->is_locked = (isset($data['is_locked']) && $data['is_locked'] == 1);
 		
 		$this->perms = $this->_get_perms();
 		$this->emails = $this->_get_emails();
@@ -311,6 +315,13 @@ class User {
 	}
 	
 	/**
+	* Updates user's last_login date in the datapase
+	* @param string $date contains date to be set in DB format
+	*/
+	function set_last_login($date){
+		$this->db->set_last_login($this->userid, $date);
+	}
+	/**
 	* Returns the error message generated
 	* @param none
 	* @return error message as string
@@ -365,6 +376,10 @@ class User {
 	
 	function get_timezone() {
 		return $this->timezone;
+	}
+	
+	function get_islocked(){
+		return $this->is_locked;
 	}
 }
 ?>

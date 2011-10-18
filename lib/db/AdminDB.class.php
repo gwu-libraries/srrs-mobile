@@ -5,7 +5,7 @@
 * @author Nick Korbel <lqqkout13@users.sourceforge.net>
 * @author David Poole <David.Poole@fccc.edu>
 * @author Richard Cantzler <rmcii@users.sourceforge.net>
-* @version 01-28-07
+* @version 08-09-07
 * @package DBEngine
 *
 * Copyright (C) 2003 - 2007 phpScheduleIt
@@ -390,7 +390,7 @@ class AdminDB extends DBEngine {
 			$inner_join = ' INNER JOIN ' . $this->get_table(TBL_USER_GROUPS) . ' ug ON l.memberid = ug.memberid AND ug.groupid IN (' . $group_list . ')';
 		}
 		if (!empty($fname) || !empty($lname) ) {
-			$where = ' WHERE fname LIKE "' . $fname . '%" AND lname LIKE "' . $lname . '%"';
+			$where = " WHERE fname LIKE '$fname%' AND lname LIKE '$lname%'";
 		}
 		$result = $this->db->getRow('SELECT COUNT(*) AS num FROM ' . $this->get_table(TBL_LOGIN) . ' l '
 				. $inner_join
@@ -419,7 +419,7 @@ class AdminDB extends DBEngine {
 			$inner_join = ' INNER JOIN ' . $this->get_table(TBL_USER_GROUPS) . ' ug ON l.memberid = ug.memberid AND ug.groupid IN (' . $group_list . ')';
 		}
 		if (!empty($fname) || !empty($lname) ) {
-			$where = ' WHERE fname LIKE "' . $fname . '%" AND lname LIKE "' . $lname . '%"';
+			$where = " WHERE fname LIKE '$fname%' AND lname LIKE '$lname%'";
 		}
 
 		$return = array();
@@ -550,8 +550,10 @@ class AdminDB extends DBEngine {
 		$values[] = $rs['max_participants'];
 		$values[] = $rs['min_notice_time'];
 		$values[] = $rs['max_notice_time'];
+		$values[] = $rs['max_reservations_per_day'];
+		$values[] = $rs['floor_plan'];
 
-		$q = $this->db->prepare('INSERT INTO ' . $this->get_table(TBL_RESOURCES) . ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+		$q = $this->db->prepare('INSERT INTO ' . $this->get_table(TBL_RESOURCES) . ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
 		$result = $this->db->execute($q, $values);
 		$this->check_for_error($result);
 
@@ -582,10 +584,13 @@ class AdminDB extends DBEngine {
 		$values[] = $rs['max_participants'];
 		$values[] = $rs['min_notice_time'];
 		$values[] = $rs['max_notice_time'];
+		$values[] = $rs['max_reservations_per_day'];
+		$values[] = $rs['floor_plan'];
 		$values[] = $rs['machid'];
 
+
 		$sql = 'UPDATE '. $this->get_table(TBL_RESOURCES) . ' SET '
-				. 'scheduleid=?, name=?, location=?, rphone=?, notes=?, minres=?, maxres=?, autoassign=?, approval=?, allow_multi=?, max_participants=?, min_notice_time=?, max_notice_time=? '
+				. 'scheduleid=?, name=?, location=?, rphone=?, notes=?, minres=?, maxres=?, autoassign=?, approval=?, allow_multi=?, max_participants=?, min_notice_time=?, max_notice_time=?, max_reservations_per_day=?, floor_plan=? '
 				. 'WHERE machid=?';
 
 		$q = $this->db->prepare($sql);
@@ -815,6 +820,16 @@ class AdminDB extends DBEngine {
 	}
 
 	/**
+	* Change the is_locked status for this user to the new status value
+	* @param string $memberid ID of the member to update
+	* @param int $new_status new is_admin status value
+	*/
+	function change_lock_status($memberid, $new_status) {
+		$result = $this->db->query('UPDATE ' . $this->get_table(TBL_LOGIN) . ' SET is_locked = ? WHERE memberid=?', array($new_status, $memberid));
+		$this->check_for_error($result);
+	}
+
+	/**
 	* Adds a new additional resource to the database
 	* @param string $name resource name
 	* @param int $number_available the number of this resource available
@@ -863,7 +878,7 @@ class AdminDB extends DBEngine {
 			FROM ' . $this->get_table(TBL_GROUPS) . ' g LEFT JOIN '
 			. $this->get_table(TBL_USER_GROUPS) . ' ug ON g.groupid = ug.groupid AND ug.is_admin = 1 LEFT JOIN '
 			. $this->get_table(TBL_LOGIN) . ' u ON ug.memberid = u.memberid LEFT JOIN (
-				SELECT ug.groupid, COUNT(ug.memberid) as user_count FROM user_groups ug GROUP BY ug.groupid
+				SELECT ug.groupid, COUNT(ug.memberid) as user_count FROM ' . $this->get_table(TBL_USER_GROUPS) . ' ug GROUP BY ug.groupid
 			) cnt ON cnt.groupid = g.groupid
 			ORDER BY group_name';
 

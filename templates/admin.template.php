@@ -4,7 +4,7 @@
 * No data manipulation is done in this file
 * @author Nick Korbel <lqqkout13@users.sourceforge.net>
 * @author David Poole <David.Poole@fccc.edu>
-* @version 05-22-06
+* @version 08-18-07
 * @package Templates
 *
 * Copyright (C) 2003 - 2007 phpScheduleIt
@@ -60,8 +60,8 @@ function print_manage_schedules(&$pager, $schedules, $err) {
 		$cur = $schedules[$i];
         echo "<tr class=\"cellColor" . ($i%2) . "\" align=\"center\" id=\"tr$i\">\n"
             . '<td style="text-align:left">' . $cur['scheduletitle'] . "</td>\n"
-            . '<td style="text-align:left">' . Time::formatTime($cur['daystart']) . "</td>\n"
-            . '<td style="text-align:left">' . Time::formatTime($cur['dayend']) . "</td>\n"
+            . '<td style="text-align:left">' . Time::formatTime($cur['daystart'], false) . "</td>\n"
+            . '<td style="text-align:left">' . Time::formatTime($cur['dayend'], false) . "</td>\n"
             . '<td style="text-align:left">' . Time::minutes_to_hours($cur['timespan']) . "</td>\n"
 		    . '<td style="text-align:left">' . CmnFns::get_day_name($cur['weekdaystart'], 0) . "</td>\n"
 		 	. '<td style="text-align:left">' . $cur['adminemail'] . "</td>\n"
@@ -114,7 +114,7 @@ function print_schedule_edit($rs, $edit, &$pager) {
 		  <td class="cellColor"><select name="daystart" class="textbox">
 		  <?php
 		  for ($time = 0; $time <= 1410; $time += 30)
-		  	echo '<option value="' . $time . '"' . ((isset($rs['daystart']) && ($rs['daystart'] == $time)) ? ' selected="selected"' : '') . '>' . Time::formatTime($time) . '</option>' . "\n";
+		  	echo '<option value="' . $time . '"' . ((isset($rs['daystart']) && ($rs['daystart'] == $time)) ? ' selected="selected"' : '') . '>' . Time::formatTime($time, false) . '</option>' . "\n";
 		  ?>
 		  </select>
 		  </td>
@@ -124,7 +124,7 @@ function print_schedule_edit($rs, $edit, &$pager) {
 		  <td class="cellColor"><select name="dayend" class="textbox">
 		  <?php
 		  for ($time = 30; $time <= 1440; $time += 30)
-		  	echo '<option value="' . $time . '"' . ((isset($rs['dayend']) && ($rs['dayend'] == $time)) ? (' selected="selected"') : (($time==1440 && !isset($rs['dayend'])) ? ' selected="selected"' : '')) . '>' . Time::formatTime($time) . '</option>' . "\n";
+		  	echo '<option value="' . $time . '"' . ((isset($rs['dayend']) && ($rs['dayend'] == $time)) ? (' selected="selected"') : (($time==1440 && !isset($rs['dayend'])) ? ' selected="selected"' : '')) . '>' . Time::formatTime($time, false) . '</option>' . "\n";
 		  ?>
 		  </select>
 		  </td>
@@ -238,7 +238,8 @@ function print_manage_users(&$pager, $users, $err) {
           <td width=\"8%\">" . translate('Password') . "</td>
 		  <td width=\"5%\">" . translate('Admin') . "</td>
 		  <td width=\"5%\">" . translate('Groups') . "</td>
-          <td width=\"8%\">" . translate('Permissions') . "</td>"
+          <td width=\"8%\">" . translate('Permissions') . "</td>
+	      <td width=\"8%\">" . translate('Locked') . "</td>"
 		 . ($isAdmin ? '<td width="6%">' . translate('Delete') . '</td>' : '')
 		 . "</tr>\n";
 
@@ -255,6 +256,9 @@ function print_manage_users(&$pager, $users, $err) {
 
 		$admin_text = (($cur['is_admin'] == 1) ? translate('Yes') : translate('No'));
 		$admin_link = $isAdmin ? $link->getLink("admin_update.php?fn=adminToggle&amp;memberid={$cur['memberid']}&amp;status=" . (($cur['is_admin'] == 1) ? '0' : '1'), $admin_text) : $admin_text;
+		
+		$locked_text = (($cur['is_locked'] == 1) ? translate('Yes') : translate('No'));
+		$locked_link = $isAdmin ? $link->getLink("admin_update.php?fn=lockToggle&amp;memberid={$cur['memberid']}&amp;status=" . (($cur['is_locked'] == 1) ? '0' : '1'), $locked_text) : $locked_text;
 
 		$group_function = $isAdmin ? 'popGroupEdit' : 'popGroupView';
 		$group_text = $isAdmin ? 'Edit' : 'View';
@@ -268,6 +272,7 @@ function print_manage_users(&$pager, $users, $err) {
                . '<td>' . $admin_link . '</td>'
 			   . '<td>' . $link->getLink("javascript:$group_function('" . $cur['memberid']. "');", translate($group_text)) . "</td>\n"
 			   . '<td>' . $link->getLink("admin.php?tool=perms&amp;memberid=" . $cur['memberid'], translate('Edit'), '', '', translate('Edit permissions for', $fname_lname)) . "</td>\n"
+			 . '<td>' . $locked_link . '</td>'
                . ($isAdmin ? '<td><input type="checkbox" name="memberid[]" value="' . $cur['memberid'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"/></td>\n" : '')
               . "</tr>\n";
     }
@@ -354,6 +359,7 @@ print_additional_tools_box( array(
 		  <td width=\"12%\">" . $link->getLink($_SERVER['PHP_SELF'] . $util->getSortingUrl($_SERVER['QUERY_STRING'], 'scheduletitle'), translate('Schedule')) . "</td>
           <td width=\"10%\">" . translate('Phone') . "</td>
           <td width=\"25%\">" . translate('Notes') . "</td>
+          <td width=\"25%\">" . translate('Floor Plan') . "</td>
           <td width=\"5%\">" . translate('Edit') . "</td>
           <td width=\"9%\">" . translate('Status') . "</td>
           <td width=\"7%\">" . translate('Delete') . "</td>
@@ -370,6 +376,7 @@ print_additional_tools_box( array(
             . '<td style="text-align:left">' . $cur['scheduletitle'] . "</td>\n"
         	. '<td style="text-align:left">' . (isset($cur['rphone']) ?  $cur['rphone'] : '&nbsp;') . "</td>\n"
             . '<td style="text-align:left">'. (isset($cur['notes']) ?  $cur['notes'] : '&nbsp;') . "</td>\n"
+			. '<td style="text-align:left">'. (isset($cur['floor_plan']) ?  $cur['floor_plan'] : '&nbsp;') . "</td>\n"
             . '<td>' . $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&machid=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;machid=' . $cur['machid'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : ''), translate('Edit'), '', '', translate('Edit data for', array($cur['name']))) . "</td>\n"
             . '<td>' . $link->getLink("admin_update.php?fn=togResource&amp;machid=" . $cur['machid'] . "&amp;status=" . $cur['status'], $cur['status'] == 'a' ? translate('Active') : translate('Inactive'), '', '', translate('Toggle this resource active/inactive')) . "</td>\n"
             . "<td><input type=\"checkbox\" name=\"machid[]\" value=\"" . $cur['machid'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\" /></td>\n"
@@ -394,7 +401,7 @@ print_additional_tools_box( array(
 * @param boolean $edit whether this is an edit or not
 * @param object $pager Pager object
 */
-function print_resource_edit($rs, $scheds, $edit, &$pager) {
+function print_resource_edit($rs, $scheds, $edit, &$pager, $files_list) {
 	global $conf;
 	$start = 0;
 	$end   = 1440;
@@ -443,6 +450,20 @@ function print_resource_edit($rs, $scheds, $edit, &$pager) {
           <td class="cellColor"><textarea name="notes" class="textbox" rows="3" cols="30"><?php echo isset($rs['notes']) ? $rs['notes'] : '' ?></textarea>
           </td>
         </tr>
+		<tr>
+			<td class="formNames"><?php echo translate('Floor Plan')?></td>
+			<td class = "cellColor">
+			<select name="floor_plan" class="textbox">
+				<?php if(!$files_list)
+					echo '<option value = "">Please Upload Floor Plans</option>';
+				else {
+					echo '<option value = "none">None</option>';
+					for ($i=0; $i < count($files_list); $i++)
+						echo '<option value ="' . $files_list[$i] . '"' .(isset($rs['floor_plan']) && $files_list[$i] == $rs['floor_plan'] ? ' selected="selected"':'') . '>' . $files_list[$i] . "</option>\n";
+				}?>
+			</select>
+			</td>
+		</tr>
 		<tr>
 		<td class="formNames"><?php echo translate('Schedule')?></td>
 		<td class="cellColor">
@@ -505,6 +526,13 @@ function print_resource_edit($rs, $scheds, $edit, &$pager) {
 			</td>
 		</tr>
 		<tr>
+			<td class="formNames"><?php echo translate('Maximum Reservation per Day')?></td>
+			<td class="cellColor">
+				<input type="text" name="max_reservations_per_day" id="max_reservations_per_day" class="textbox" size="3" value="<?php echo isset($rs['max_reservations_per_day']) ? $rs['max_reservations_per_day'] : ''?>" /> 
+		  * <?php echo translate('Leave blank for unlimited') ?>
+			</td>
+		</tr>
+		<tr>
 		  <td class="formNames"><?php echo translate('Maximum Participant Capacity')?></td>
 		  <td class="cellColor"><input type="text" name="max_participants" size="3" class="textbox" value="<?php echo isset($rs['max_participants']) ? $rs['max_participants'] : ''?>"/>
 		  * <?php echo translate('Leave blank for unlimited')?>
@@ -524,7 +552,7 @@ function print_resource_edit($rs, $scheds, $edit, &$pager) {
 		  <td class="formNames"><?php echo translate('Allow Multiple Day Reservations')?></td>
 		  <td class="cellColor"><input type="checkbox" name="allow_multi" <?php echo (isset($rs['allow_multi']) && ($rs['allow_multi'] == 1)) ? 'checked="checked"' : ''?> onclick="showHideMinMax(this);" />
 		  </td>
-		</tr>
+		</tr>		
       </table>
     </td>
   </tr>
@@ -1059,6 +1087,47 @@ function print_group_edit($group, $edit, &$pager, $group_users = array()) {
 }
 
 /**
+*	Print list of floor plans available in the system
+*/
+function print_floor_plans($files_list)
+{
+	global $conf;
+	
+	?>
+	<form name="managePlans" method="post" action="admin_update.php" onsubmit="return checkPlanstForm();">
+	<table width="100%" border="0" cellspacing="0" cellpadding="1" align="center">
+	  <tr>
+	    <td class="tableBorder">
+	      <table width="100%" border="0" cellspacing="1" cellpadding="0">
+	        <tr>
+	          <td colspan="4" class="tableTitle">&#8250; <?php echo translate('All Floor Plans')?></td>
+	        </tr>
+			<?php echo "
+	        <tr class=\"rowHeaders\">
+	          <td>" . translate('Floor Plan') . "</td>
+	          <td width=\"7%\">" .translate('Delete') . "</td>
+	        </tr>";
+		if (!$files_list)
+			echo '<tr class="cellColor0"><td colspan="4" style="text-align: center;">' . "No Floor Plans Uploaded" . '</td></tr>' . "\n";
+
+	    for ($i = 0; is_array($files_list) && $i < count($files_list); $i++) {
+	        echo "<tr class=\"cellColor" . ($i%2) . "\" align=\"center\" id=\"tr$i\">\n". "<td style=\"text-align:left\">\n" . "<a href=\"javascript:floorPic('" . $conf['app']['floor_plans_dir'] . "/" . $files_list[$i] . "')\">" . htmlspecialchars($files_list[$i]) . "</a>" . "</td>\n";
+			echo "<td><input type=\"checkbox\" name=\"floorplanfilename[]\" value=\"" . $files_list[$i] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\" /></td>\n". "</tr>\n";
+	    }
+	
+	?>
+	  	</table>
+	   </td>
+	 </tr>
+	</table>
+	<?php
+		echo submit_button(translate('Delete Floor Plan'), 'floorplanfilename') . hidden_fn('delFloorPlan');
+	?>
+	</form>
+<?php
+}
+
+/**
 * Prints out GUI list to of email addresses
 * Prints out a table with option to email users,
 *  and prints form to enter subject and message of email
@@ -1293,10 +1362,10 @@ function print_reset_password(&$user) {
 			<br />
 			<i><?php echo translate('If no value is specified, the default password set in the config file will be used.')?></i>
 			</td>
+          </tr>
 		  <tr class="cellColor">
 		    <td colspan="2"><input type="checkbox" name="notify_user" value="true" checked="checked"/><?php echo translate('Notify user that password has been changed?')?></td>
 		  </tr>
-          </tr>
         </table>
       </td>
     </tr>
