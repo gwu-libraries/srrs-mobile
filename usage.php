@@ -33,6 +33,11 @@ $t->printWelcome();			// Print welcome message
 
 $t->startMain();			// Start main table
 
+$t->startNavLinkTable();
+$t->showNavLinksTable(Auth::isAdmin());
+$t->endNavLinkTable();
+$t->splitTable();
+
 $db = new UsageDB();			// Connect to database
 
 $link = CmnFns::getNewLink();	// Get Link object

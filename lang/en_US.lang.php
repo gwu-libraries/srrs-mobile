@@ -130,7 +130,8 @@ $strings['pm'] = 'pm';
 $strings['Administrator'] = 'Administrator';
 $strings['Welcome Back'] = 'Welcome Back, %s';
 $strings['Log Out'] = 'Log Out';
-$strings['My Control Panel'] = 'My Control Panel';
+$strings['My Control Panel'] = 'Current Reservations';
+$strings['View Dashboard'] = 'Current Reservations';
 $strings['Help'] = 'Help';
 $strings['Manage Schedules'] = 'Manage Schedules';
 $strings['Manage Users'] = 'Manage Users';
@@ -141,6 +142,7 @@ $strings['Email Users'] = 'Email Users';
 $strings['Export Database Data'] = 'Export Database Data';
 $strings['Reset Password'] = 'Reset Password';
 $strings['System Administration'] = 'System Administration';
+$strings['Floor Plans'] = 'Study Room Maps';
 $strings['Successful update'] = 'Successful update';
 $strings['Update failed!'] = 'Update failed!';
 $strings['Manage Blackout Times'] = 'Manage Blackout Times';
@@ -163,6 +165,7 @@ $strings['That schedule is not available.'] = 'That schedule is not available.';
 $strings['You did not select any schedules to delete.'] = 'You did not select any schedules to delete.';
 $strings['You did not select any members to delete.'] = 'You did not select any members to delete.';
 $strings['You did not select any resources to delete.'] = 'You did not select any resources to delete.';
+$strings['You did not select any files to delete.'] = 'You did not select any files to delete.';
 $strings['Schedule title is required.'] = 'Schedule title is required.';
 $strings['Invalid start/end times'] = 'Invalid start/end times';
 $strings['View days is required'] = 'View days is required';
@@ -170,6 +173,7 @@ $strings['Day offset is required'] = 'Day offset is required';
 $strings['Admin email is required'] = 'Admin email is required';
 $strings['Resource name is required.'] = 'Resource name is required.';
 $strings['Valid schedule must be selected'] = 'Valid schedule must be selected';
+$strings['Valid floor plan must be selected'] = 'Valid schedule must be selected';
 $strings['Minimum reservation length must be less than or equal to maximum reservation length.'] = 'Minimum reservation length must be less than or equal to maximum reservation length.';
 $strings['Your request was processed successfully.'] = 'Your request was processed successfully.';
 $strings['Go back to system administration'] = 'Go back to system administration';
@@ -217,6 +221,7 @@ $strings['Institution'] = 'Institution';
 $strings['Phone'] = 'Phone';
 $strings['Password'] = 'Password';
 $strings['Permissions'] = 'Permissions';
+$strings['Locked'] = 'Locked';
 $strings['View information about'] = 'View information about %s %s';
 $strings['Send email to'] = 'Send email to %s %s';
 $strings['Reset password for'] = 'Reset password for %s %s';
@@ -311,10 +316,10 @@ $strings['Get online help'] = 'Get online help';
 $strings['Language'] = 'Language';
 $strings['(Default)'] = '(Default)';
 
-$strings['My Announcements'] = 'My Announcements';
+$strings['My Announcements'] = 'Announcements';
 $strings['My Reservations'] = 'My Reservations';
 $strings['My Permissions'] = 'My Permissions';
-$strings['My Quick Links'] = 'My Quick Links';
+$strings['My Quick Links'] = 'Menu';
 $strings['Announcements as of'] = 'Announcements as of %s';
 $strings['There are no announcements.'] = 'There are no announcements.';
 $strings['Resource'] = 'Resource';
@@ -324,6 +329,8 @@ $strings['View this reservation'] = 'View this reservation';
 $strings['Modify this reservation'] = 'Modify this reservation';
 $strings['Delete this reservation'] = 'Delete this reservation';
 $strings['Bookings'] = 'Bookings';											// @since 1.2.0
+$strings['Create Reservation'] = 'Place a Reservation';
+$strings['View Reservation Calendar'] = 'View Reservation Calendar';
 $strings['Change My Profile Information/Password'] = 'Change Profile';		// @since 1.2.0
 $strings['Manage My Email Preferences'] = 'Email Preferences';				// @since 1.2.0
 $strings['Mass Email Users'] = 'Mass Email Users';
@@ -340,7 +347,7 @@ $strings['I prefer'] = 'I prefer:';
 $strings['Your email preferences were successfully saved'] = 'Your email preferences were successfully saved!';
 $strings['Return to My Control Panel'] = 'Return to My Control Panel';
 
-$strings['Please select the starting and ending times'] = 'Please select the starting and ending times:';
+$strings['Please select the starting and ending times'] = 'Please verify your reservation time:';
 $strings['Please change the starting and ending times'] = 'Please change the starting and ending times:';
 $strings['Reserved time'] = 'Reserved time:';
 $strings['Minimum Reservation Length'] = 'Minimum Reservation Length:';
@@ -376,15 +383,22 @@ $strings['Set blackout times'] = 'Set blackout times for %s on %s';
 $strings['Reserve on'] = 'Reserve %s on %s';
 $strings['Prev Week'] = '&laquo; Prev Week';
 $strings['Jump 1 week back'] = 'Jump 1 week back';
-$strings['Prev days'] = '&#8249; Prev %d days';
-$strings['Previous days'] = '&#8249; Previous %d days';
+$strings['Prev days'] = '&#8249; Prev %d day';
+$strings['Previous days'] = '&#8249; Previous %d day';
 $strings['This Week'] = 'This Week';
 $strings['Jump to this week'] = 'Jump to this week';
-$strings['Next days'] = 'Next %d days &#8250;';
+$strings['Next days'] = 'Next %d day &#8250;';
 $strings['Next Week'] = 'Next Week &raquo;';
 $strings['Jump To Date'] = 'Jump To Date';
 $strings['View Monthly Calendar'] = 'View Monthly Calendar';
 $strings['Open up a navigational calendar'] = 'Open up a navigational calendar';
+// AK: New translations are added
+
+$strings['Today'] = 'Today';
+$strings['Jump to today'] = 'Jump to today';
+
+
+
 
 $strings['View stats for schedule'] = 'View stats for schedule:';
 $strings['At A Glance'] = 'At A Glance';
@@ -424,6 +438,7 @@ $strings['Hold CTRL to select multiple'] = 'Hold CTRL to select multiple';
 $strings['Users'] = 'Users:';
 $strings['All Users'] = 'All Users';
 $strings['Resources'] = 'Resources';		// @since 1.2.0
+$strings['Room'] = 'Room';
 $strings['All Resources'] = 'All Resources';
 $strings['Starting Date'] = 'Starting Date:';
 $strings['Ending Date'] = 'Ending Date:';
@@ -459,6 +474,11 @@ $strings['That cookie seems to be invalid'] = 'That cookie seems to be invalid';
 $strings['We could not find that logon in our database.'] = 'We could not find that logon in our database.';	// @since 1.1.0
 $strings['That password did not match the one in our database.'] = 'That password did not match the one in our database.';
 $strings['You can try'] = '<br />You can try:<br />Registering an email address.<br />Or:<br />Try logging in again.';
+$strings['Login failed. Please verify your data.'] = 'Login failed. Please verify your data.';
+$strings['Login failed. Your account has expired.'] ='Login failed. Your account has expired.';
+$strings['We could not connect to the authentication server. Please try again later.'] = 'We could not connect to the authentication server. Please try again later.';
+$strings['The number of login attempts is exceeded.'] = 'The number of login attempts is exceeded.';
+$strings['Your account is locked. Please contact the system administrator.'] = 'Your account is locked. Please contact the system administrator.';
 $strings['A new user has been added'] = 'A new user has been added';
 $strings['You have successfully registered'] = 'You have successfully registered!';
 $strings['Continue'] = 'Continue...';
@@ -577,7 +597,10 @@ $strings['Number'] = 'Number';
 $strings['Add Announcement'] = 'Add Announcement';
 $strings['Edit Announcement'] = 'Edit Announcement';
 $strings['All Announcements'] = 'All Announcements';
+$strings['All Floor Plans'] = 'All Floor Plans';
+$strings['Floor Plan'] = 'Floor Plan';
 $strings['Delete Announcements'] = 'Delete Announcements';
+$strings['Delete Floor Plan'] = 'Delete Floor Plan';
 $strings['Use start date/time?'] = 'Use start date/time?';
 $strings['Use end date/time?'] = 'Use end date/time?';
 $strings['Announcement text is required.'] = 'Announcement text is required.';
@@ -594,10 +617,12 @@ $strings['approved'] = 'approved';
 $strings['Reservation approved'] = 'Reservation approved';
 
 $strings['Valid username is required'] = 'Valid username is required';
+$strings['Valid GWId is required'] = 'Valid GWId is required';
 $strings['That logon name is taken already.'] = 'That logon name is taken already.';
 $strings['this will be your login'] = '(this will be your login)';
 $strings['Logon name'] = 'Logon name';
 $strings['Your logon name is'] = 'Your logon name is %s';
+$strings['GWId'] = 'GWId';
 
 $strings['Start'] = 'Start';
 $strings['End'] = 'End';
@@ -635,6 +660,7 @@ $strings['Confirm'] = 'Confirm';
 $strings['Do for all reservations in the group?'] = 'Do for all reservations in the group?';
 
 $strings['My Calendar'] = 'My Calendar';
+$strings['Calendar'] = 'Calendar';
 $strings['View My Calendar'] = 'View My Calendar';
 $strings['Participant'] = 'Participant';
 $strings['Recurring'] = 'Recurring';
@@ -689,6 +715,7 @@ $strings['All Groups'] = 'All Groups';
 $strings['Group Name'] = 'Group Name';
 $strings['Delete Groups'] = 'Delete Groups';
 $strings['Manage Groups'] = 'Manage Groups';
+$strings['Manage Floor Plans'] = 'Manage Floor Plans';
 $strings['None'] = 'None';
 $strings['Group name is required.'] = 'Group name is required.';
 $strings['Groups'] = 'Groups';
@@ -707,6 +734,7 @@ $strings['This resource cannot be reserved less than x hours in advance'] = 'Thi
 $strings['This resource cannot be reserved more than x hours in advance'] = 'This resource cannot be reserved more than %s hours in advance';
 $strings['Minimum Booking Notice'] = 'Minimum Booking Notice';
 $strings['Maximum Booking Notice'] = 'Maximum Booking Notice';
+$strings['Maximum Reservation per Day'] = 'Maximum Reservation per Day';
 $strings['hours prior to the start time'] = 'hours prior to the start time';
 $strings['hours from the current time'] = 'hours from the current time';
 $strings['Contains'] = 'Contains';
@@ -754,10 +782,10 @@ $email['register_admin'] = "Administrator,\r\n\r\n"
 //  that needs to be assembled depending on different options.  Please translate all of them.
 // @since 1.1.0
 $email['reservation_activity_1'] = "%s,\r\n<br />"
-			. "You have successfully %s reservation #%s.\r\n\r\n<br/><br/>"
-			. "Please use this reservation number when contacting the administrator with any questions.\r\n\r\n<br/><br/>"
+			. "You have successfully %s a reservation with a confirmation number of #%s.\r\n\r\n<br/><br/>"
 			. "A reservation between %s %s and %s %s for %s"
-			. " located at %s has been %s.\r\n\r\n<br/><br/>";
+			. " located at %s has been %s.\r\n\r\n<br/><br/>"
+			. "This email is your receipt. Please print it out and bring it to your session.\r\n\r\n<br/><br/>";
 $email['reservation_activity_2'] = "This reservation has been repeated on the following dates:\r\n<br/>";
 $email['reservation_activity_3'] = "All recurring reservations in this group were also %s.\r\n\r\n<br/><br/>";
 $email['reservation_activity_4'] = "The following summary was provided for this reservation:\r\n<br/>%s\r\n\r\n<br/><br/>";

@@ -30,6 +30,11 @@ if (!$admin->isUserAllowed()) {
 $t->printWelcome();
 $t->startMain();
 
+$t->startNavLinkTable();
+$t->showNavLinksTable(Auth::isAdmin());
+$t->endNavLinkTable();
+$t->splitTable();
+
 if (!$admin->is_error()) {
 	$admin->execute();
 }

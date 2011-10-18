@@ -195,5 +195,12 @@ class UserDB extends DBEngine {
 		$result = $this->db->execute($q, array($lang, $memberid));
 		$this->check_for_error($result);
 	}
+	
+	function set_last_login($memberid, $date){
+		$query = 'UPDATE ' . $this->get_table(TBL_LOGIN) . ' SET last_login = ? WHERE memberid = ?';
+		$q = $this->db->prepare($query);
+		$result = $this->db->execute($q, array($date, $memberid));
+		$this->check_for_error($result);
+	}
 }
 ?>

@@ -21,6 +21,7 @@ $link = CmnFns::getNewLink();
 function print_calendars(&$prev, &$next, &$curr) {
 ?>
 <!-- Start calendars -->
+
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
   <tr>
     <td align="center" valign="top"><?php $prev->printCalendar()?></td>

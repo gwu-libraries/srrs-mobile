@@ -282,7 +282,7 @@ class CmnFns {
 		$initial_date = getdate($initial_ts);
 		
 		list($last_m, $last_d, $last_y) = explode('/', $until);
-		$last_ts = mktime(0,0,0,$last_m, $last_d, $last_y);
+		$last_ts = mktime(0, 0, 0, $last_m, $last_d, $last_y);
 		$last_date = getdate($last_ts);
 		
 		$day_of_week = $initial_date['wday'];

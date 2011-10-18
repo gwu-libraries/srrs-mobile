@@ -33,6 +33,7 @@ class Calendar {
 	var $daysInMonth;
 	var $weekstart;
 	var $scheduleid = '';
+	var $printMonthName = false;
 
 	var $javascript = "changeScheduler(%d,%d,%d,%d,'%s');";
 
@@ -43,7 +44,7 @@ class Calendar {
     * colors, font sizes, and other attributes
     * @param none
     */
-    function Calendar($isPopup = true, $month = null, $year = null, $weekstart = null) {
+    function Calendar($isPopup = true, $printMonthName = false, $month = null, $year = null, $weekstart = null) {
 		//$this->setupStyleRules();
 		global $months_full;
 		global $conf;
@@ -51,6 +52,7 @@ class Calendar {
 		$this->isPopup = $isPopup;
 		$this->weekstart = (!is_null($weekstart)) ? $weekstart : $conf['app']['calFirstDay'];
 		$this->day = 1;
+		$this->printMonthName = $printMonthName;
 
 		if ($this->isPopup) {
 			if (isset($_POST['month']) && isset($_POST['year'])) {
@@ -108,10 +110,11 @@ class Calendar {
     * after a Calendar has been created)
     * @param none
     */
-    function printCalendar() {
+    function printCalendar($current_date) {
 		$today = getdate(Time::getAdjustedTime(mktime()));
 
-		$this->printCalendarBody($today);
+	    $selected_date_array = getdate($current_date);
+		$this->printCalendarBody($today, $selected_date_array);
 
 		if ($this->isPopup) {
 			$this->printJumpForm();
@@ -122,15 +125,20 @@ class Calendar {
 	* Prints the calendar body
 	* @param int $today timestamp for todays date
 	*/
-	function printCalendarBody($today) {
+	function printCalendarBody($today, $selected_date) {
 		global $days_letter;
 		$days = $days_letter;//array ('S', 'M', 'T', 'W', 'T', 'F', 'S');
 	    ?>
-        <table border="0" cellspacing="0" cellpadding="0">
+        <table id="calendar" border="0" cellspacing="0" cellpadding="0">
           <tr>
-            <td class="borderColor">
+            <td>
         	  <table border="0" cellspacing="1" cellpadding="0">
-			  	<tr><td colspan="7" class="monthNameStyle"><?php echo $this->monthName . ' ' . $this->year ?></td></tr>
+				<?php
+				if($this->printMonthName){ ?>
+					<tr><td colspan="7" class="monthNameStyle"> <?php echo $this->monthName . ' ' . $this->year;?></td></tr>
+				<?php }
+				?>
+				
         		<tr class="dayNamesStyle">
 				 <?php
 				 for ($i = $this->weekstart; $i < $this->weekstart + 7; $i++) {
@@ -164,10 +172,16 @@ class Calendar {
                 for ( /* Day already set */ ; $day < $this->weekstart + 7; $day++) {
                     // If there are still more days to print, do it
                     if (++$currentDay <= $this->daysInMonth) {
-						if ($currentDay == $today['mday'] && $this->month == $today['mon'] && $this->year == $today['year'])
+						if ($currentDay == $today['mday'] && $this->month == $today['mon'] && $this->year == $today['year']){
 							$class = 'currentDayBoxStyle';
+						}
+						elseif ($currentDay == $selected_date['mday'] && $this->month == $selected_date['mon'] && $this->year == $selected_date['year']){
+							$class = 'selectedDayBoxStyle';
+						}
 						else
+						{
 							$class = 'dayBoxStyle';
+						}
                         echo "<td class=\"$class\"><a href=\"javascript: " . sprintf($this->javascript, $this->month, $currentDay, $this->year, intval($this->isPopup), $this->scheduleid) . "\">" . ($currentDay) . "</a></td>";
                     }
 					else {

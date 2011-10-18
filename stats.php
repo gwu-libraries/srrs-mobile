@@ -31,6 +31,11 @@ if (!Auth::isAdmin()) {
 $t->printWelcome();
 $t->startMain();
 
+$t->startNavLinkTable();
+$t->showNavLinksTable(Auth::isAdmin());
+$t->endNavLinkTable();
+$t->splitTable();
+
 $scheduleid = isset($_GET['scheduleid']) ? $_GET['scheduleid'] : null;
 
 if (!$stats->set_schedule($scheduleid)) {

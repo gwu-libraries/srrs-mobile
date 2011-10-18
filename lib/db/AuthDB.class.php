@@ -4,7 +4,7 @@
 * Provides all login and registration functionality
 * @author Nick Korbel <lqqkout13@users.sourceforge.net>
 * @author David Poole <David.Poole@fccc.edu>
-* @version 04-06-07
+* @version 07-30-07
 * @package DBEngine
 *
 * Copyright (C) 2003 - 2007 phpScheduleIt
@@ -84,13 +84,15 @@ class AuthDB extends DBEngine {
 		array_push($to_insert, 'y');
 		array_push($to_insert, 'y');
 		array_push($to_insert, 'y');
-		array_push($to_insert, 'n');
+		array_push($to_insert, 'y');
 		array_push($to_insert, isset($data['logon_name']) ? $data['logon_name'] : null);	// Push the logon name if we are using it
 		array_push($to_insert, 0);	// is_admin
 		array_push($to_insert, $data['lang']);
 		array_push($to_insert, $data['timezone']);
-
-		$q = $this->db->prepare('INSERT INTO ' . $this->get_table('login') . ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+		array_push($to_insert, date('Y-m-d'));
+		array_push($to_insert, 0); // is_locked
+		
+		$q = $this->db->prepare('INSERT INTO ' . $this->get_table('login') . ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 		$result = $this->db->execute($q, $to_insert);
 		$this->check_for_error($result);
 
@@ -113,6 +115,7 @@ class AuthDB extends DBEngine {
 		array_push($to_insert, empty($data['position']) ? '' : $data['position']);
 		array_push($to_insert, isset($data['logon_name']) ? $data['logon_name'] : null);	// Push the logon name if we are using it
 		array_push($to_insert, $data['timezone']);
+		array_push($to_insert, date('Y-m-d'));
 
 		$sql = 'UPDATE ' . $this->get_table('login')
 			. ' SET email=?,'
@@ -122,7 +125,8 @@ class AuthDB extends DBEngine {
 			. ' institution=?,'
 			. ' position=?,'
 			. ' logon_name=?,'
-			. ' timezone=?';
+			. ' timezone=?,'
+			. ' last_login=?';
 
 		if (isset($data['password']) && !empty($data['password'])) {	// If they are changing passwords
 			$sql .= ', password=?';
@@ -188,6 +192,15 @@ class AuthDB extends DBEngine {
 		$q = $this->db->prepare($sql);
 		$result = $this->db->execute($q);
 		$this->check_for_error($result);
+	}
+	
+	function getPassword($id)
+	{
+		$data = array ($id);
+		$result = $this->db->getRow('SELECT password FROM ' . $this->get_table('login') . " WHERE memberid=?", $data);
+		$this->check_for_error($result);
+		
+		return $result['password'];
 	}
 }
 ?>

@@ -31,6 +31,11 @@ $t->printWelcome();
 // Begin main table
 $t->startMain();
 
+$t->startNavLinkTable();
+$t->showNavLinksTable(Auth::isAdmin());
+$t->endNavLinkTable();
+$t->splitTable();
+
 $type = isset($_GET['view']) ? $_GET['view'] : MYCALENDARTYPE_DAY;
 
 $calendar = new MyCalendar(Auth::getCurrentID(), $type, get_calendar_actual_date());

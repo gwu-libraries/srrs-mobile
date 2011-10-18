@@ -29,7 +29,7 @@ function print_register_form($edit, $data = array(), $msg = '', $memberid = '') 
 	$timezones = array(-12, -11, -10, -9, -8, -7, -6, -5, -4, -3.5, -3, -2, -1, 0, 1, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 8, 9, 9.5, 10, 11, 12, 13);
 
 	// Print header
-	echo '<h3 align="center">' . (($edit) ? translate('Please edit your profile') : translate('Please register')) . '</h3>' . "\n";
+//	echo '<h3 align="center">' . (($edit) ? translate('Please edit your profile') : translate('Please register')) . '</h3>' . "\n";
 
 	if (!empty($msg))
 		CmnFns::do_error_box($msg, '', false);
@@ -40,7 +40,8 @@ function print_register_form($edit, $data = array(), $msg = '', $memberid = '') 
 <tr>
   <td bgcolor="#333333">
 	<table width="100%" border="0" cellspacing="1" cellpadding="2">
-	  <?php  if ($use_logonname) { ?>
+	  
+	<?php  if ($use_logonname) { ?>
 	  <tr bgcolor="#FFFFFF">
 		<td width="250">
 		  <p align="right">* <?php echo translate('Logon name') . ' ' . ($use_logonname ? translate('this will be your login') : '')?></p>
@@ -52,19 +53,24 @@ function print_register_form($edit, $data = array(), $msg = '', $memberid = '') 
 	  <?php  } ?>
 	  <tr bgcolor="#FFFFFF">
 		<td width="250">
+	<?php if ($conf['app']['wrlc']){?>		
+		  <p align="right">* <?php echo translate('Email address')?></p>
+	<?php }else{?>
 		  <p align="right">* <?php echo translate('Email address') . ' ' . (!$use_logonname ? translate('this will be your login') : '')?></p>
+	<?php }?>
 		</td>
 		<td>
-		  <input type="text" name="emailaddress" class="textbox" value="<?php echo isset($data['emailaddress']) ? $data['emailaddress'] : ''?>" maxlength="75" />
+		  <input type="text" name="emailaddress" class="textbox" <?php echo ($conf['app']['wrlc'] ? "readonly = \"readonly\"" : "") ?> value="<?php echo isset($data['emailaddress']) ? $data['emailaddress'] : ''?>" maxlength="75" /> 	
+		  
 		  <input type="hidden" name="memberid" value="<?php echo isset($data['memberid']) ? $data['memberid'] : ''?>"/>
 		</td>
 	  </tr>
 	  <tr bgcolor="#FFFFFF">
-		<td>
+		<td>	
 		  <p align="right">* <?php echo translate('First Name')?></p>
 		</td>
 		<td>
-		  <input type="text" name="fname" class="textbox" value="<?php echo isset($data['fname']) ? $data['fname'] : ''?>" maxlength="50" />
+			<input type="text" name="fname" class="textbox" <?php echo ($conf['app']['wrlc'] ? "readonly = \"readonly\"" : "") ?> value="<?php echo isset($data['fname']) ? $data['fname'] : ''?>" maxlength="50" />
 		</td>
 	  </tr>
 	  <tr bgcolor="#FFFFFF">
@@ -72,7 +78,7 @@ function print_register_form($edit, $data = array(), $msg = '', $memberid = '') 
 		  <p align="right">* <?php echo translate('Last Name')?></p>
 		</td>
 		<td>
-		  <input type="text" name="lname" class="textbox" value="<?php echo isset($data['lname']) ? $data['lname'] : ''?>" maxlength="50" />
+		  <input type="text" name="lname" class="textbox" <?php echo ($conf['app']['wrlc'] ? "readonly = \"readonly\"" : "") ?> value="<?php echo isset($data['lname']) ? $data['lname'] : ''?>" maxlength="50" />
 		</td>
 	  </tr>
 	  <tr bgcolor="#FFFFFF">
@@ -83,10 +89,12 @@ function print_register_form($edit, $data = array(), $msg = '', $memberid = '') 
 		  <input type="text" name="phone" class="textbox" value="<?php echo isset($data['phone']) ? $data['phone'] : ''?>" size="15" />
 		</td>
 	  </tr>
+	<?php if (!$conf['app']['wrlc']){?>
 	  <tr bgcolor="#FFFFFF">
 		<td>
 		  <p align="right"><?php echo translate('Institution')?></p>
 		</td>
+	
 		<td>
 		  <?php
 		  if (empty($institutions[0])) {
@@ -151,7 +159,8 @@ function print_register_form($edit, $data = array(), $msg = '', $memberid = '') 
 		  <input type="password" name="password2" class="textbox" />
 		</td>
 	  </tr>
-	  <tr bgcolor="#FFFFFF">
+	<?php }?>
+<!--	  <tr bgcolor="#FFFFFF">
 	  		<td>
 	  		  <p align="right"><?php echo translate('Timezone')?></p>
 	  		</td>
@@ -168,7 +177,7 @@ function print_register_form($edit, $data = array(), $msg = '', $memberid = '') 
 			?>
 			</select>
 	  		</td>
-	  </tr>
+	  </tr>-->
 	  <?php if (!$edit && (bool)$conf['app']['allowSelfRegistration']) { ?>
 	  <tr bgcolor="#FFFFFF">
 		<td>
@@ -208,13 +217,22 @@ function printLoginForm($msg = '', $resume = '') {
 	global $conf;
 	$link = CmnFns::getNewLink();
 	$use_logonname = (bool)$conf['app']['useLogonName'] || (bool)$conf['ldap']['authentication'];
-
+	$is_exceeded = false;
 	// Check browser information
 	echo '<script language="JavaScript" type="text/javascript">checkBrowser();</script>';
 
+	if(isset($_SESSION['loginAttempts']) && $_SESSION['loginAttempts'] >= $conf['app']['loginAttempts'])
+	{
+		$msg .= translate('The number of login attempts is exceeded.') . '<br/>';
+		$is_exceeded = true;
+	}
+	
 	if (!empty($msg))
 		CmnFns::do_error_box($msg, '', false);
+	
+	if(!$is_exceeded){
 ?>
+
 <form name="login" method="post" action="<?php echo $_SERVER['PHP_SELF']?>">
 <table width="350px" border="0" cellspacing="0" cellpadding="1" align="center">
 <tr>
@@ -225,6 +243,25 @@ function printLoginForm($msg = '', $resume = '') {
 		  <h5 align="center"><?php echo translate('Please Log In')?></h5>
 		</td>
 	  </tr>
+	<?php if ($conf['app']['wrlc']) {?>
+	  <tr bgcolor="#FFFFFF">
+		<td>
+		  <p><b><?php echo translate('Last Name')?></b></p>
+		</td>
+		<td>
+		  <input type="password" name="name" class="textbox" />
+		</td>
+	  </tr>
+	  <tr bgcolor="#FFFFFF">
+		<td width="150">
+		  <p><b><?php echo translate("GWId")?></b></p>
+		</td>
+		<td>
+		  <input type="password" name="gwid" class="textbox" />
+		</td>
+	  </tr>  
+
+	<?php }else{ ?>
 	  <tr bgcolor="#FFFFFF">
 		<td width="150">
 		  <p><b><?php echo translate(($use_logonname ? 'Logon name' : 'Email address'))?></b></p>
@@ -241,14 +278,15 @@ function printLoginForm($msg = '', $resume = '') {
 		  <input type="password" name="password" class="textbox" />
 		</td>
 	  </tr>
-	  <tr bgcolor="#FFFFFF">
+	<!--   AK: language selection is not required at this point
+		<tr bgcolor="#FFFFFF">
 		<td>
 		  <p><b><?php echo translate('Language')?></b></p>
 		</td>
 		<td>
 		<?php CmnFns::print_language_pulldown(); ?>
 		</td>
-	  </tr>
+	  </tr> -->
 	  <tr bgcolor="#FFFFFF">
 		<td>
 		  <p><b><?php echo translate('Keep me logged in')?></b></p>
@@ -257,6 +295,8 @@ function printLoginForm($msg = '', $resume = '') {
 		  <input type="checkbox" name="setCookie" value="true" />
 		</td>
 	  </tr>
+		<?php }?>
+		
 	  <tr bgcolor="#FAFAFA">
 		<td colspan="2" style="border-top: solid 1px #CCCCCC;">
 		   <p align="center">
@@ -273,12 +313,26 @@ function printLoginForm($msg = '', $resume = '') {
 	</table>
   </td>
 </tr>
+<tr><td>&nbsp;</td></tr>
+<tr>
+	<td>
+	Our login system currently cannot handle hyphenated names. If you have a hyphen in your name, please substitute a space for it when logging in.
+	</td>
+</tr>
+<tr><td>&nbsp;</td></tr>
 </table>
+<?php }?>
 <p align="center">
 <?php $link->doLink('roschedule.php', translate('View Schedule'), '', '', translate('View a read-only version of the schedule')) ?>
 |
-<?php $link->doLink('forgot_pwd.php', translate('I Forgot My Password'), '', '', translate('Retreive lost password')) ?>
+<?php
+if (!$conf['app']['wrlc']){
+$link->doLink('forgot_pwd.php', translate('I Forgot My Password'), '', '', translate('Retreive lost password'));
+?>
 |
+<?php
+} ?>
+
 <?php $link->doLink('javascript: help();', translate('Help'), '', '', translate('Get online help')) ?>
 </p>
 </form>

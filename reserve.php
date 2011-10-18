@@ -48,11 +48,12 @@ if ((!isset($_GET['read_only']) || !$_GET['read_only']) && $conf['app']['readOnl
 
 $t = new Template();
 
-if (isset($_POST['btnSubmit']) && strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF'])) {
+//AK HTTP_REFERER is striped by Gelman firewall
+if (isset($_POST['btnSubmit']) /*&& strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF'])*/) {
+
 	$t->set_title(translate("Processing $Class"));
 	$t->printHTMLHeader();
 	$t->startMain();
-
 	process_reservation($_POST['fn']);
 }
 else {
@@ -60,6 +61,7 @@ else {
 	$t->set_title($res_info['title']);
     $t->printHTMLHeader();
     $t->startMain();
+	
     present_reservation($res_info['resid']);
 }
 
@@ -93,7 +95,7 @@ function process_reservation($fn) {
 	else {
 		// New reservation
 		$res = new $Class(null, false, $is_pending);
-		if ($_POST['interval'] != 'none') {		// Check for reservation repeation
+/*		if ($_POST['interval'] != 'none') {		// Check for reservation repeation
 			if ($start_date == $end_date) {
 				$res->is_repeat = true;
 				$days = isset($_POST['repeat_day']) ? $_POST['repeat_day'] : NULL;
@@ -106,15 +108,20 @@ function process_reservation($fn) {
 				$res->is_repeat = false;
 			}
 		}
-		else {
+		else {*/
 			$repeat = array($start_date);
 			$res->is_repeat = false;
-		}
+	//	}
 	}
 
 	$cur_user = new User(Auth::getCurrentID());
 	$res->adminMode = Auth::isAdmin() || $cur_user->get_isadmin() || ($fn != 'create' && $cur_user->is_group_admin($res->user->get_groupids()));
 
+	if (Auth::isAdmin() || $cur_user->get_isadmin())
+	{
+		$res->is_pending = false;	
+	}
+	
 	if ($fn == 'create' || $fn == 'modify') {
 		$helper = new ReservationHelper();
 		$util = new Utility();
@@ -187,6 +194,12 @@ function present_reservation($resid) {
 
 	$cur_user = new User(Auth::getCurrentID());
 	$res->adminMode = Auth::isAdmin() || $cur_user->get_isadmin() || $cur_user->is_group_admin($res->user->get_groupids() );
+	
+	if (Auth::isAdmin() || $cur_user->get_isadmin())
+	{
+		$res->is_pending = false;	
+	}
+	
 	$res->set_type($_GET['type']);
 	$res->print_res();
 }

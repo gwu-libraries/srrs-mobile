@@ -7,7 +7,7 @@
 * @author Nick Korbel <lqqkout13@users.sourceforge.net>
 * @author David Poole <David.Poole@fccc.edu>
 * @author Richard Cantzler <rmcii@users.sourceforge.net>
-* @version 02-04-07
+* @version 06-23-07
 * @package phpScheduleIt
 *
 * Copyright (C) 2003 - 2007 phpScheduleIt
@@ -97,27 +97,41 @@ class Schedule {
     function print_schedule() {
         global $conf;
 
-        print_date_span($this->_date, $this->title);
+		$current_date = $this->_date['current'];        // Store current_date so we dont have to access the array every time
+		//AK: Week date span is not printed out since we will display a single day
+		//AK: Date span is not needed, since information is already displayed in the schedule itself 
+        //print_date_span($this->_date, $this->title);
+		
+		// AK: Schedule listy is not displayed either, since a single default schedule is used
+        //print_schedule_list($this->db->get_schedule_list(), $this->scheduleid);
+		
+		// AK: Called separately in schedule.php
+        //$this->print_calendars();
 
-        print_schedule_list($this->db->get_schedule_list(), $this->scheduleid);
-
-        $this->print_calendars();
-
-        if ($this->scheduleType == ALL)
-            print_color_key();
+		// AK: Function is called directly in schedule.php
+        //if ($this->scheduleType == ALL)
+        //    print_color_key();
 
         // Break first day we are viewing into an array of date pieces
         $temp_date = getdate($this->_date['firstDayTs']);
-        $hour_header = get_hour_header($this->get_time_array(), $this->startDay, $this->endDay, $this->timespan);    // Get the headers (same for all tables)
+        $hour_header = get_hour_header($this->get_time_array(), $this->startDay, $this->endDay, $this->timespan, $current_date);    // Get the headers (same for all tables)
 
+		if ($this->scheduleType != READ_ONLY && $this->scheduleType != BLACKOUT_ONLY)
+		{ print_timeslotinfo(); }
+		
+		start_day_table($this->get_display_date(), $hour_header, TRUE); // Start the table for the current date.
+		$this->print_reservations();    // Print reservations for this day
+        end_day_table();                // End the table for this day
+
+		//We don want to show entire week here, jsut a single day. For this reason the following code was introduced. Original masterpiece is commented out.		
         // Repeat this for each day we need to show
-        for ($dayCount = 0; $dayCount < $this->viewdays; $dayCount++) {
+  /*      for ($dayCount = 0; $dayCount < $this->viewdays; $dayCount++) {
             // Timestamp for whatever day we are currently viewing
             $this->_date['current'] = mktime(0,0,0, $temp_date['mon'], $temp_date['mday'] + $dayCount, $temp_date['year']);
-            start_day_table($this->get_display_date(), $hour_header);    // Start the table for this day
+            start_day_table($this->get_display_date(), $hour_header, $this->_date['now'] == $this->_date['current']);    // Start the table for this day
             $this->print_reservations();    // Print reservations for this day
             end_day_table();                // End the table for this day
-        }
+        }*/
         print_summary_div();
 
     }
@@ -127,12 +141,15 @@ class Schedule {
     * @param none
     */
     function print_calendars() {
-        $prev = new Calendar(false, $this->_date['month'] -1, $this->_date['year']);
-        $curr = new Calendar(false, $this->_date['month'], $this->_date['year']);
-        $next = new Calendar(false, $this->_date['month'] + 1, $this->_date['year']);
+        $prev = new Calendar(false, false, $this->_date['month'] -1, $this->_date['year']);
+        $curr = new Calendar(false, false, $this->_date['month'], $this->_date['year']);
+        $next = new Calendar(false, false, $this->_date['month'] + 1, $this->_date['year']);
         $prev->scheduleid = $curr->scheduleid = $next->scheduleid = $this->scheduleid;
-
-        print_calendars($prev, $curr, $next);
+		
+		startNavCalTable();
+        print_calendars($prev, $curr, $next, $this->_date['current']);
+		print_calendar_jump_links($this->_date['firstDayTs']);
+		endNavCalTable();
     }
 
 	/**
@@ -202,9 +219,10 @@ class Schedule {
 
             // Store info about this current resource in local vars
             $id = $cur_resource['machid'];
-            $name = $cur_resource['name'];
+			$name = $cur_resource['name'];
             $status = $cur_resource['status'];
             $approval = $cur_resource['approval'];
+			$floor_plan = $cur_resource['floor_plan'];
 
             $shown = false;        // Default resource visiblilty to not shown
 			$viewable_date = $this->isViewableDate($current_date, $cur_resource['min_notice_time'], $cur_resource['max_notice_time']);
@@ -214,7 +232,7 @@ class Schedule {
             $shown = $this->canShowReservation($viewable_date, $cur_resource);
 
             $color = 'cellColor' . ($count%2);
-            print_name_cell($current_date, $id, $name, $shown, $this->scheduleType == BLACKOUT_ONLY, $this->scheduleid, $approval, $color);
+            print_name_cell($current_date, $id, $name, $shown, $this->scheduleType == BLACKOUT_ONLY, $this->scheduleid, $approval, $color, $floor_plan);
 
             $index = $id;
             if (isset($this->res[$index])) {
@@ -278,7 +296,7 @@ class Schedule {
     * @return formatted date
     */
     function get_display_date() {
-		return Time::formatReservationDate($this->_date['current'], $this->startDay, null, 'schedule_daily');
+		return Time::formatReservationDate($this->_date['todayTs'], $this->startDay, null, 'schedule_daily');
     }
 
     /**
@@ -316,8 +334,10 @@ class Schedule {
         // Get proper starting day
         $dayNo = date('w', $dv['todayTs']);
 
-        if ($default)
-            $dv['day'] = $dv['day'] - ($dayNo - $this->weekdaystart);        // Make sure week starts on correct day
+		//AK: not needed since the current single day is displayed
+		
+        //if ($default)
+        //    $dv['day'] = $dv['day'] - ($dayNo - $this->weekdaystart);        // Make sure week starts on correct day
 
         // If default view and first day has passed, move up one week
         //if ($default && (date(mktime(0,0,0,$dv['month'], $dv['day'] + $this->viewdays, $dv['year'])) <= mktime(0,0,0)))
@@ -330,6 +350,7 @@ class Schedule {
         // by adding # of days to view minus the day of the week to $day
         $dv['lastDayTs'] = mktime(0,0,0, $dv['month'], ($dv['day'] + $this->viewdays - 1), $dv['year']);
         $dv['current'] = $dv['firstDayTs'];
+        $dv['now'] = mktime(0,0,0);
 
         return $dv;
     }
@@ -383,8 +404,18 @@ class Schedule {
     */
     function print_jump_links() {
         global $conf;
-        print_jump_links($this->_date['firstDayTs'], $this->viewdays, ($this->viewdays != 7));
+        print_jump_links($this->_date['todayTs'], $this->viewdays, ($this->viewdays != 7));
     }
+
+	/** AK:
+    * Print out colr codes
+    * @param none
+    */
+	function print_color_key() {
+		global $conf;
+		if ($this->scheduleType == ALL)
+			print_color_key();
+	}
 
     /**
     * Return color_select for given reservation
@@ -409,7 +440,7 @@ class Schedule {
 			}
         }
 
-        if (mktime(0,0,0) > $this->_date['current']) {        // If todays date is still before or on the day of this reservation
+        if (mktime(/*0,0,0*/) > ($rs['start_date'] + $rs['starttime']*60)/*$this->_date['current']*/) {        // If todays date is still before or on the day of this reservation
             $is_past = true;
 			if ($is_mine) {
 				 $color_select = 'my_past_res';

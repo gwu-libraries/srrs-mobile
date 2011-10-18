@@ -37,7 +37,8 @@ class Admin {
 					'announcements' => array ('Manage Announcements', 'manageAnnouncements', 'announcements'),
 					'approval'	=> array ('Approve Reservations', 'approveReservations', 'approval'),
 					'additional_resources' => array ('Manage Additional Resources', 'manageAdditionalResources', 'additional_resources'),
-					'groups' 	=> array ('Manage Groups', 'manageGroups', 'groups')
+					'groups' 	=> array ('Manage Groups', 'manageGroups', 'groups'),
+					'plans' 	=> array ('Manage Floor Plans', 'managePlans', 'plans')
 					);
 	var $pager;
 	var $db;
@@ -241,8 +242,9 @@ class Admin {
 		}
 
 		$scheds = $this->db->get_table_data('schedules', array('scheduleid', 'scheduletitle'), array('scheduletitle'));
-
-		print_resource_edit($rs, $scheds, $edit, $this->pager);
+		$files_list = $this->getFloorPlansFileList();
+		
+		print_resource_edit($rs, $scheds, $edit, $this->pager, $files_list);
 		unset($_SESSION['post'], $rs);
 	}
 
@@ -335,7 +337,7 @@ class Admin {
 	*/
 	function sendMessage() {
 		global $conf;
-		$success = $fail = array();
+		$success = false;
 
 		$usr = $_SESSION['usr'];
 		$msg = $_SESSION['msg'];
@@ -602,6 +604,53 @@ class Admin {
 		}
 
 		print_group_edit($group, $edit, $this->pager, $users);
+	}
+	
+	/**
+	* Interface for managing floor plans
+	*/
+	function managePlans() {
+		$this->listFloorPlans();
+		$this->addFloorPlan();
+		
+	}
+	
+	/**
+	* Interface to view and delete floor plans
+	* @param none
+	*/
+	function listFloorPlans() {
+	  $files_list = $this->getFloorPlansFileList();
+	
+	  print_floor_plans($files_list);	
+	}
+	
+	/**
+	* Interface to add and edit a floor plan
+	* @param none
+	*/
+	function addFloorPlan() {
+		
+	}
+	
+	/**
+	* Utility function to get the list of floor plan files
+	* @param none
+	*/
+	function getFloorPlansFileList() {
+		global $conf;
+		$files_list = array();
+		if ($handle = opendir($conf['app']['floor_plans_dir'])) {
+	    	while (false !== ($file = readdir($handle)))
+	    	{
+	          if ($file != "." && $file != "..")
+		  	  {
+	          	array_push($files_list, $file);
+	          }
+	    	}
+	       closedir($handle);
+	    }
+		return $files_list;
 	}
 }
 ?>

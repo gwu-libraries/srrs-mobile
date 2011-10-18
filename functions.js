@@ -89,11 +89,18 @@ function reserve(type, machid, start_date, resid, scheduleid, is_blackout, read_
 		if (pending == null) { pending = ''; }
 		if (starttime == null) { starttime = ''; }
 		if (endtime == null) { endtime = ''; }
-
+	//	var x=window.confirm("Do you want to reserve this room?");
+	//	if(x)
+		{
+	/*	window.location.assign("http://encyclopedia.gwu.edu/srrs/reserve.php?type=" + type + "&machid=" + machid + "&start_date=" + start_date + "&resid=" + resid + '&scheduleid=' + scheduleid + "&is_blackout=" + is_blackout + "&read_only=" + read_only + "&pending=" + pending + "&starttime=" + starttime + "&endtime=" + endtime);*/
+	//	window.close();
+	//	else
+	//	window.location= "http://encyclopedia.gwu.edu/srrs/schedule1.php";
 		nurl = "reserve.php?type=" + type + "&machid=" + machid + "&start_date=" + start_date + "&resid=" + resid + '&scheduleid=' + scheduleid + "&is_blackout=" + is_blackout + "&read_only=" + read_only + "&pending=" + pending + "&starttime=" + starttime + "&endtime=" + endtime;    
 		var resWindow = window.open(nurl,"reserve","width=" + w + ",height=" + h + ",scrollbars,resizable=no,status=no");     
 		resWindow.focus();
-		void(0);   
+		void(0);
+		}
 }
 
 function checkDate() {
@@ -325,39 +332,42 @@ function changeScheduler(m, d, y, isPopup, scheduleid) {
 		document.location.href = url + "?date=" + newDate + "&scheduleid=" + schedid;
 }
 
+// BUGFIX by Eric Maclot
 function showsummary(object, e, text) {
+ 
 	myLayer = document.getElementById(object);
 	myLayer.innerHTML = text;
-	
-	w = parseInt(myLayer.style.width);
-	h = parseInt(myLayer.style.height);
 
+	w = parseInt(myLayer.style.width) ;
+	h = parseInt(myLayer.style.height);
+ 
     if (e != '') {
         if (isIE()) {
-        	x = e.clientX;
-            y = e.clientY;
+            x = e.clientX;
+         y = e.clientY;
             browserX = document.body.offsetWidth - 25;
-            x += document.body.scrollLeft;			// Adjust for scrolling on IE
-    		y += document.body.scrollTop;
+            //        x += document.body.scrollLeft ;                        // Adjust for scrolling on IE
+            //        y += document.body.scrollTop ;
+                    x += document.documentElement.scrollLeft - document.body.clientLeft ; // change made
+                    y += document.documentElement.scrollTop - document.body.clientTop; // change made
         }
         if (!isIE()) {
             x = e.pageX;
             y = e.pageY;
             browserX = window.innerWidth - 35;
-       }
+        }
     }
-	
-	x1 = x + 20;		// Move out of mouse pointer
+ 
+	x1 = x + 20;                // Move out of mouse pointer
 	y1 = y + 20;
-	
+
 	// Keep box from going off screen
-	if (x1 + w > browserX) {
-		x1 = browserX - w;
-	}
-    
+	if (x1 + w > browserX){
+			x1 = browserX - w;
+ 	}
     myLayer.style.left = parseInt(x1)+ "px";
     myLayer.style.top = parseInt(y1) + "px";
-	myLayer.style.visibility = "visible";
+    myLayer.style.visibility = "visible";
 }
 
 function getAbsolutePosition(element) {
@@ -371,7 +381,7 @@ function getAbsolutePosition(element) {
   };
 
 function moveSummary(object, e) {
-
+ 
 	myLayer = document.getElementById(object);
 	w = parseInt(myLayer.style.width);
 	h = parseInt(myLayer.style.height);
@@ -380,24 +390,26 @@ function moveSummary(object, e) {
         if (isIE()) {
             x = e.clientX;
             y = e.clientY;
-			browserX = document.body.offsetWidth -25;
-			x += document.body.scrollLeft;
-			y += document.body.scrollTop;
+                        browserX = document.body.offsetWidth -25;
+                        //x += document.body.scrollLeft;
+                        //y += document.body.scrollTop;
+                        x += document.documentElement.scrollLeft - document.body.clientLeft ; //change made
+                     y += document.documentElement.scrollTop - document.body.clientTop; // change made
         }
         if (!isIE()) {
             x = e.pageX;
             y = e.pageY;
-			browserX = window.innerWidth - 30;
+                        browserX = window.innerWidth - 30;
         }
     }
-
-	x1 = x + 20;	// Move out of mouse pointer	
+ 
+	x1 = x + 20;        // Move out of mouse pointer
 	y1 = y + 20;
-	
+
 	// Keep box from going off screen
 	if (x1 + w > browserX)
-		x1 = browserX - w;
-
+			x1 = browserX - w;
+ 
     myLayer.style.left = parseInt(x1) + "px";
     myLayer.style.top = parseInt(y1) + "px";
 }
@@ -409,13 +421,67 @@ function hideSummary(object) {
 
 function resOver(cell, color) {
 	hiliteResource(cell.parentNode, "resourceNameOver");
+	cell.style.backgroundImage = 'none';
 	cell.style.backgroundColor = color;
 	cell.style.cursor='pointer'
 }
 
-function resOut(cell, color) {
+function resOut(cell, color, image) {
 	hiliteResource(cell.parentNode, "resourceName");
-	cell.style.backgroundColor = color;
+	cell.style.backgroundColor = 'none';
+	cell.style.backgroundImage = 'url(' + image + ')';
+}
+
+function showDescription(object, type)
+{
+	var text;
+	var bg_color;
+	
+	text = '';
+	bg_color = '#FFFFFF';
+	
+	myLayer = document.getElementById(object);
+	
+	switch(type)
+	{
+	case 'my_res':
+		text = 'This is your reservation. You may click to edit it.';
+		bg_color = '#05F711';
+	break;
+	case 'my_past_res':
+		text = 'This was your reservation. It is in the past, and can no longer be modified.';
+		bg_color = '#9CF7A0';
+	break;
+	case 'other_past_res':
+		text = 'This slot was reserved.';
+		bg_color = '#FF5757';
+	break;
+	case 'other_res':
+		text = 'This time slot is reserved already.';
+		bg_color = '#F71111';
+	break;	
+	case 'time_past':
+		text = 'Grayed out time slots are in the past. Click a white square to place a reservation.';
+		bg_color = '#3F2F25';
+	break;
+	case 'time_future':
+		text = "Grayed out time slots exceed maximum booking notice. Click a white square to place a reservation.";
+		bg_color = '#3F2F25';
+	break;
+	default:
+		text = 'This slot is available. Click to reserve it.';
+	}
+	
+	myLayer.innerHTML = text;
+	myLayer.style.backgroundColor = bg_color;
+	myLayer.style.visibility = "visible";
+}
+
+function hideDescription(object)
+{
+	myLayer = document.getElementById(object);
+	myLayer.innerHTML = 'This slot is available. Click to reserve it.';
+	myLayer.style.backgroundColor = '#05F711';
 }
 
 function blankOver(cell) {
@@ -743,4 +809,9 @@ function exportSearch() {
 
 function blurDiv(checkbox, divid) {
 	document.getElementById(divid).className = checkbox.checked ? "blur_textbox" : "textbox";
+}
+
+function floorPic(sPicURL) { 
+     window.open( "floor.html?"+sPicURL, "",  
+     "resizable=1,HEIGHT=200,WIDTH=200"); 
 }

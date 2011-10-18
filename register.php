@@ -83,9 +83,14 @@ if ($edit || !(bool)$conf['app']['allowSelfRegistration'])
 // Begin main table
 $t->startMain();
 
+$t->startNavLinkTable();
+$t->showNavLinksTable(Auth::isAdmin());
+$t->endNavLinkTable();
+$t->splitTable();
+
 // Either this is a fresh view or there was an error, so show the form
 if ($show_form || $msg != '') {
-	if (!isset($data['timezone'])) { $data['timezone'] = $conf['app']['timezone']; }
+	if (!isset($data['timezone'])) { $data['timezone'] = $conf['app']['default_timezone']; }
 	$auth->print_register_form($edit, $data, $msg, $id);
 }
 

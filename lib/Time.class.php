@@ -43,7 +43,8 @@ class Time
 		// Set proper minutes (the same for 12/24 format)
 		if ($min < 10) $min = 0 . $min;
 		// Put into a string and return
-		return $hour . ':' . $min . $a;
+		//AK: Don't need minutes. Saving space.
+		return $hour . /*':' . $min .*/ $a;
 	}
 
 
@@ -147,7 +148,7 @@ class Time
 	function getServerTime($datestamp, $minutes = null) {
 		if (Time::getHourOffset() == 0) {
 			$date = $datestamp;
-			$time = minutes;
+			$time = $minutes;
 		}
 		else {
 			$date = Time::getAdjustedDate($datestamp, $minutes, true);
@@ -181,7 +182,7 @@ class Time
 	*/
 	function getHourOffset($to_server_time = false) {
 		if (isset($_SESSION['hourOffset'])) {
-			return $to_server_time ? $_SESSION['hourOffset'] * -1 : $_SESSION['hourOffset'];
+			return $to_server_time ? $_SESSION['hourOffset'] * -1: $_SESSION['hourOffset'];
 		}
 		return 0;
 	}

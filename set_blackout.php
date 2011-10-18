@@ -26,7 +26,8 @@ if (!Auth::isAdmin()) {
 
 $t = new Template();
 
-if (isset($_POST['submit']) && strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF'])) {
+//AK HTTP_REFERER is blocked is cleared by gelman firewall will not run this check
+if (isset($_POST['submit']) /*&& strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF'])*/) {
 	$t->set_title('Processing Blackout');
 	$t->printHTMLHeader();
 	$t->startMain();

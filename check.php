@@ -108,14 +108,14 @@ function process_reservation(&$res) {
 		$res->resource = new Resource($_POST['machid']);	// Wont be loaded 
 		$res->scheduleid= $_POST['scheduleid'];				//
 		
-		if ($_POST['interval'] != 'none') {		// Check for reservation repeation
+/*		if ($_POST['interval'] != 'none') {		// Check for reservation repeation
 			if ($start_date == $end_date) { 
 				$days = isset($_POST['repeat_day']) ? $_POST['repeat_day'] : NULL;
 				$week_num = isset($_POST['week_number']) ? $_POST['week_number'] : NULL;
 				$repeat = CmnFns::get_repeat_dates($start_date, $_POST['interval'], $days, $_POST['repeat_until'], $_POST['frequency'], $week_num);
 				$res->is_repeat = true;
 			}
-		}
+		}*/
 	}
 	
 	$res->user 		= new User($_POST['memberid']);

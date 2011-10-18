@@ -35,13 +35,16 @@
 // Set session name
 ini_set('session.name', $conf['app']['sessionName']);
 
+//AK: The line bellow sets inactivity timeout for session. It doesn't guruantee that the session will timeout exactly after time specified. It more random, but it is the easiest way to do it.
+ini_set('session.gc_maxlifetime', 60);
+
 // Start the session (do not edit!)
 session_start();
 
 // Turn off magic quotes (do not edit!)
 set_magic_quotes_runtime(0);
 
-$conf['app']['version'] = '1.2.7';
+$conf['app']['version'] = '1.2.8';
 
 include_once('constants.php');
 include_once('langs.php');
